@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} - Project | {{ site.site_name }} {{ site.site_suffix }}{% endblock %}
+
+{% block content %}
+<style>
+    @keyframes pj-kb { from { transform: scale(1.02); } to { transform: scale(1.14) translate(-1.5%, -1%); } }
+    @keyframes pj-word { from { opacity: 0; transform: translateY(110%) rotate(4deg); } to { opacity: 1; transform: none; } }
+    @keyframes pj-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+    @keyframes pj-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+    .pj-hero { position: relative; min-height: 30rem; display: flex; align-items: flex-end; overflow: hidden; border-radius: 0 0 2.5rem 2.5rem; background: linear-gradient(135deg, #0f172a, #1b1240); color: #fff; }
+    .pj-cover { position: absolute; inset: -4%; width: 108%; height: 108%; object-fit: cover; opacity: .55; animation: pj-kb 18s ease-in-out infinite alternate; will-change: transform; }
+    .pj-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,30,.25), rgba(10,10,30,.92)); }
+    .pj-hero > .in { position: relative; z-index: 2; width: 100%; }
+    .pj-title { display: flex; flex-wrap: wrap; gap: 0 .35em; font-size: 2.2rem; line-height: 1.15; font-weight: 900; }
+    @media (min-width: 768px) { .pj-title { font-size: 3.6rem; } }
+    .pj-title .w { display: inline-block; overflow: hidden; }
+    .pj-title .w span { display: inline-block; animation: pj-word .9s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 90ms + .2s); }
+    .pj-line { height: 3px; width: 6rem; margin-top: 1.2rem; border-radius: 3px; transform-origin: left; background: linear-gradient(90deg, rgb(var(--brand-300)), transparent); animation: pj-line 1s .6s both; }
+    .pj-up { animation: pj-up .8s cubic-bezier(.2,.8,.2,1) both; }
+
+    .pj-info { margin-top: -2.2rem; position: relative; z-index: 5; }
+    .pj-info-card { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; padding: 1.4rem 1.6rem; border-radius: 1.5rem; background: #fff; border: 1px solid rgba(226,232,240,.9); box-shadow: 0 30px 50px -30px rgb(var(--brand-700) / .5); }
+    @media (min-width: 768px) { .pj-info-card { grid-template-columns: repeat(4, 1fr); } }
+    html.dark .pj-info-card { background: #161626; border-color: rgba(255,255,255,.08); }
+    .pj-info-card small { display: block; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: rgb(var(--brand-600)); }
+    .pj-info-card b { display: block; margin-top: .25rem; font-size: .85rem; color: #0f172a; }
+    html.dark .pj-info-card b { color: #f1f5f9; }
+
+    .pj-h { font-size: 1.6rem; font-weight: 900; color: #0f172a; }
+    html.dark .pj-h { color: #f1f5f9; }
+    .pj-p { font-size: .9rem; line-height: 1.85; color: #475569; }
+    html.dark .pj-p { color: #a9b4c6; }
+    .pj-feat li { display: flex; gap: .7rem; padding: .75rem 1rem; border-radius: .9rem; background: rgb(var(--brand-500) / .07); font-size: .82rem; font-weight: 600; color: #334155; transition: transform .3s; }
+    .pj-feat li:hover { transform: translateX(6px); }
+    .pj-feat li i { color: rgb(var(--brand-600)); margin-top: .2rem; }
+    html.dark .pj-feat li { color: #cbd5e1; }
+
+    .pj-res { padding: 2rem 1.2rem; text-align: center; border-radius: 1.5rem; color: #fff; background: linear-gradient(135deg, rgb(var(--brand-600)), rgb(var(--brand-900))); box-shadow: 0 24px 40px -24px rgb(var(--brand-700) / .8); }
+    .pj-res b { display: block; font-size: 2.6rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+    .pj-res small { display: block; margin-top: .6rem; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.8); }
+
+    .pj-split { display: grid; gap: 1.5rem; }
+    @media (min-width: 900px) { .pj-split { grid-template-columns: 1fr 1fr; } }
+    .pj-panel { position: relative; padding: 2rem; border-radius: 1.8rem; overflow: hidden; }
+    .pj-panel.ch { background: #fff1f2; border: 1px solid #fecdd3; }
+    .pj-panel.so { color: #fff; background: linear-gradient(135deg, #0f172a, #1b1240); }
+    .pj-panel.so .pj-p { color: #c3cbe0; }
+    .pj-panel .tag { display: inline-flex; gap: .5rem; align-items: center; font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .pj-panel.ch .tag { color: #be123c; }
+    .pj-panel.ch .pj-p { color: #7f1d1d; }
+    .pj-panel.so .tag { color: rgb(var(--brand-300)); }
+    html.dark .pj-panel.ch { background: rgba(190,18,60,.12); border-color: rgba(251,113,133,.3); }
+    html.dark .pj-panel.ch .pj-p { color: #fecdd3; }
+
+    .tech-chip { display: inline-flex; align-items: center; gap: .5rem; padding: .6rem 1.1rem; border-radius: 999px; font-size: .75rem; font-weight: 800; color: rgb(var(--brand-700)); background: rgb(var(--brand-500) / .08); border: 1px solid rgb(var(--brand-500) / .28); transition: transform .3s, background .3s, color .3s; }
+    .tech-chip:hover { transform: translateY(-4px) scale(1.05); color: #fff; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); }
+    html.dark .tech-chip { color: rgb(var(--brand-300)); }
+
+    .pj-tech { display: grid; gap: 1rem; }
+    @media (min-width: 768px) { .pj-tech { grid-template-columns: repeat(2, 1fr); } }
+    .pj-tq { display: flex; gap: 1rem; padding: 1.3rem; border-radius: 1.3rem; background: #fff; border: 1px solid rgba(226,232,240,.9); transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .3s, box-shadow .3s; }
+    .pj-tq:hover { transform: translateY(-6px); border-color: rgb(var(--brand-400)); box-shadow: 0 20px 34px -22px rgb(var(--brand-600) / .6); }
+    html.dark .pj-tq { background: #161626; border-color: rgba(255,255,255,.08); }
+    .pj-tq .n { flex-shrink: 0; width: 2.6rem; height: 2.6rem; border-radius: .9rem; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 900; color: #fff; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); }
+    .pj-tq h4 { font-size: .9rem; font-weight: 800; color: #0f172a; }
+    html.dark .pj-tq h4 { color: #f1f5f9; }
+    .pj-tq p { margin-top: .3rem; font-size: .78rem; line-height: 1.65; color: #64748b; }
+
+    .pj-gal { display: grid; gap: 1rem; grid-template-columns: repeat(2, 1fr); }
+    @media (min-width: 768px) { .pj-gal { grid-template-columns: repeat(3, 1fr); } }
+    .pj-gal button { position: relative; display: block; width: 100%; aspect-ratio: 4/3; overflow: hidden; border-radius: 1.2rem; background: #1a1a33; }
+    .pj-gal img { width: 100%; height: 100%; object-fit: cover; transition: transform .7s cubic-bezier(.2,.8,.2,1); }
+    .pj-gal button:hover img { transform: scale(1.12); }
+    .pj-gal span { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.4rem .9rem .7rem; font-size: .7rem; font-weight: 700; color: #fff; text-align: left; background: linear-gradient(transparent, rgba(0,0,0,.75)); transform: translateY(100%); transition: transform .4s; }
+    .pj-gal button:hover span { transform: none; }
+    .pj-lb { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; padding: 1.5rem; background: rgba(5,5,20,.92); }
+    .pj-lb.is-open { display: flex; animation: pj-up .3s both; }
+    .pj-lb img { max-width: 100%; max-height: 85vh; border-radius: 1rem; }
+    .pj-lb button { position: absolute; top: 1.2rem; right: 1.4rem; font-size: 1.6rem; color: #fff; }
+
+    .pj-quote { position: relative; padding: 2.5rem; border-radius: 2rem; text-align: center; background: linear-gradient(135deg, rgb(var(--brand-500) / .1), rgb(var(--brand-700) / .05)); border: 1px solid rgb(var(--brand-500) / .25); }
+    .pj-quote i { font-size: 2rem; color: rgb(var(--brand-500)); }
+    .pj-quote p { margin-top: 1rem; font-size: 1.25rem; font-weight: 700; line-height: 1.6; color: #0f172a; }
+    html.dark .pj-quote p { color: #f1f5f9; }
+    .pj-nav { display: grid; gap: 1rem; }
+    @media (min-width: 768px) { .pj-nav { grid-template-columns: 1fr 1fr; } }
+    .pj-nav a { display: block; padding: 1.3rem 1.5rem; border-radius: 1.3rem; border: 1px solid rgba(226,232,240,.9); background: #fff; transition: transform .35s, border-color .3s; }
+    .pj-nav a:hover { transform: translateY(-5px); border-color: rgb(var(--brand-400)); }
+    html.dark .pj-nav a { background: #161626; border-color: rgba(255,255,255,.08); }
+    .pj-nav small { font-size: .65rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: rgb(var(--brand-600)); }
+    .pj-nav b { display: block; margin-top: .3rem; color: #0f172a; }
+    html.dark .pj-nav b { color: #f1f5f9; }
+    @media (prefers-reduced-motion: reduce) { .pj-cover, .pj-title .w span, .pj-line, .pj-up { animation: none !important; } }
+</style>
+
+<!-- Hero -->
+<section class="pj-hero">
+    {% if project.image %}<img class="pj-cover" src="{{ project.image.url }}" alt="{{ project.title }}">{% endif %}
+    <div class="in max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        <a href="{% url 'portfolio' %}" class="text-xs font-bold text-brand-200 hover:text-white inline-flex items-center gap-2 pj-up"><i class="fa-solid fa-arrow-left"></i> All Projects</a>
+        <div class="mt-5"><span class="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-white/10 border border-white/20 pj-up" style="animation-delay:.1s">{{ project.badge }}</span></div>
+        <h1 class="pj-title mt-4" id="pjTitle" aria-label="{{ project.title }}">{% for w in project.title.split %}<span class="w" aria-hidden="true"><span style="--i: {{ forloop.counter0 }}">{{ w }}</span></span>{% endfor %}</h1>
+        <div class="pj-line"></div>
+        <p class="text-sm text-slate-300 mt-5 max-w-2xl pj-up" style="animation-delay:.5s">{{ project.description }}</p>
+    </div>
+</section>
+
+<!-- Info bar -->
+{% if project.client or project.year or project.duration or project.role or project.live_url %}
+<div class="pj-info max-w-6xl mx-auto px-4 sm:px-6"><div class="pj-info-card">
+    {% if project.client %}<div><small>Client</small><b>{{ project.client }}</b></div>{% endif %}
+    {% if project.year %}<div><small>Year</small><b>{{ project.year }}</b></div>{% endif %}
+    {% if project.duration %}<div><small>Duration</small><b>{{ project.duration }}</b></div>{% endif %}
+    {% if project.role %}<div><small>Our role</small><b>{{ project.role }}</b></div>{% endif %}
+    {% if project.live_url %}<div><small>Live</small><b><a href="{{ project.live_url }}" target="_blank" rel="noopener" class="text-brand-600 hover:underline">Visit project <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></b></div>{% endif %}
+</div></div>
+{% endif %}
+
+<!-- Overview + features -->
+<section class="py-16 sm:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-5 gap-12">
+        <div class="lg:col-span-3 reveal">
+            <h2 class="pj-h">Project overview</h2>
+            <div class="mt-5 space-y-4">{% for para in project.overview_paragraphs %}<p class="pj-p">{{ para }}</p>{% endfor %}</div>
+        </div>
+        {% if project.feature_list %}
+        <div class="lg:col-span-2 reveal" style="--d: 1">
+            <h2 class="pj-h">Key features</h2>
+            <ul class="pj-feat mt-5 space-y-3">{% for f in project.feature_list %}<li><i class="fa-solid fa-circle-check"></i><span>{{ f }}</span></li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% if results %}
+<section class="pb-16 sm:pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="pj-h text-center mb-8">Results</h2>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {% for r in results %}<div class="pj-res reveal" style="--d: {{ forloop.counter0 }}"><b data-count="{{ r.value }}">{{ r.value }}</b><small>{{ r.label }}</small></div>{% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if project.challenge or project.solution %}
+<section class="pb-16 sm:pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="pj-split">
+        {% if project.challenge %}<div class="pj-panel ch reveal"><span class="tag"><i class="fa-solid fa-triangle-exclamation"></i> The challenge</span><div class="mt-4 space-y-3">{% for para in project.challenge_paragraphs %}<p class="pj-p">{{ para }}</p>{% endfor %}</div></div>{% endif %}
+        {% if project.solution %}<div class="pj-panel so reveal" style="--d: 1"><span class="tag"><i class="fa-solid fa-lightbulb"></i> Our solution</span><div class="mt-4 space-y-3">{% for para in project.solution_paragraphs %}<p class="pj-p">{{ para }}</p>{% endfor %}</div></div>{% endif %}
+    </div></div>
+</section>
+{% endif %}
+
+{% if project.tech_list or project.technique_list %}
+<section class="pb-16 sm:pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% if project.tech_list %}
+        <h2 class="pj-h">Technologies used</h2>
+        <div class="flex flex-wrap gap-3 mt-5">{% for t in project.tech_list %}<span class="reveal" style="--d: {{ forloop.counter0 }}"><span class="tech-chip"><i class="fa-solid fa-circle-nodes text-[10px]"></i>{{ t }}</span></span>{% endfor %}</div>
+        {% endif %}
+        {% if project.technique_list %}
+        <h2 class="pj-h mt-14">Techniques &amp; approach</h2>
+        <div class="pj-tech mt-5">
+            {% for name, text in project.technique_list %}<div class="pj-tq reveal" style="--d: {{ forloop.counter0 }}"><span class="n">{{ forloop.counter|stringformat:"02d" }}</span><div><h4>{{ name }}</h4>{% if text %}<p>{{ text }}</p>{% endif %}</div></div>{% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+{% if gallery %}
+<section class="pb-16 sm:pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="pj-h mb-6">Project gallery</h2>
+        <div class="pj-gal">
+            {% for g in gallery %}<button type="button" class="reveal" style="--d: {{ forloop.counter0 }}" data-full="{{ g.image.url }}" aria-label="Open image"><img src="{{ g.image.url }}" alt="{{ g.caption|default:project.title }}" loading="lazy">{% if g.caption %}<span>{{ g.caption }}</span>{% endif %}</button>{% endfor %}
+        </div>
+    </div>
+</section>
+<div class="pj-lb" id="pjLb"><button type="button" aria-label="Close">&times;</button><img alt=""></div>
+{% endif %}
+
+{% if project.quote %}
+<section class="pb-16 sm:pb-20">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6"><div class="pj-quote reveal"><i class="fa-solid fa-quote-left"></i><p>{{ project.quote }}</p>{% if project.quote_author %}<small class="block mt-4 text-xs font-bold text-brand-600">{{ project.quote_author }}</small>{% endif %}</div></div>
+</section>
+{% endif %}
+
+<section class="pb-20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 space-y-8">
+        {% if prev_project and next_project %}
+        <div class="pj-nav">
+            <a href="{{ prev_project.get_absolute_url }}"><small><i class="fa-solid fa-arrow-left"></i> Previous project</small><b>{{ prev_project.title }}</b></a>
+            <a href="{{ next_project.get_absolute_url }}" class="md:text-right"><small>Next project <i class="fa-solid fa-arrow-right"></i></small><b>{{ next_project.title }}</b></a>
+        </div>
+        {% endif %}
+        <div class="rounded-3xl p-8 sm:p-12 text-center text-white" style="background:linear-gradient(135deg,rgb(var(--brand-600)),rgb(var(--brand-900)))">
+            <h2 class="text-2xl sm:text-3xl font-extrabold">Want a result like this?</h2>
+            <p class="text-sm text-white/80 mt-3">Tell us about your idea and we will plan it with you.</p>
+            <a href="{% url 'contact' %}" class="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-white text-xs font-extrabold uppercase tracking-wider" style="color:rgb(var(--brand-700))">Start your project <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% include "agency/_service_assets.html" %}
+<script>
+(function () {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function count(el) {
+        var raw = el.getAttribute('data-count'), m = raw.match(/^(\D*)([\d.,]+)(.*)$/);
+        if (!m || reduce) return;
+        var target = parseFloat(m[2].replace(/,/g, '')), dec = (m[2].split('.')[1] || '').length, t0 = null;
+        function tick(t) {
+            if (t0 === null) t0 = t;
+            var k = Math.min(1, (t - t0) / 1500), e = 1 - Math.pow(1 - k, 3);
+            el.textContent = m[1] + (target * e).toFixed(dec) + m[3];
+            if (k < 1) requestAnimationFrame(tick); else el.textContent = raw;
+        }
+        requestAnimationFrame(tick);
+    }
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (es) {
+            es.forEach(function (en) { if (en.isIntersecting) { count(en.target); io.unobserve(en.target); } });
+        }, { threshold: .6 });
+        document.querySelectorAll('[data-count]').forEach(function (el) { io.observe(el); });
+    }
+    var lb = document.getElementById('pjLb');
+    if (lb) {
+        var im = lb.querySelector('img');
+        document.querySelectorAll('.pj-gal button').forEach(function (b) {
+            b.addEventListener('click', function () { im.src = b.getAttribute('data-full'); lb.classList.add('is-open'); });
+        });
+        lb.addEventListener('click', function () { lb.classList.remove('is-open'); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') lb.classList.remove('is-open'); });
+    }
+})();
+</script>
+{% endblock %}

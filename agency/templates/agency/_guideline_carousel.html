@@ -1,0 +1,182 @@
+<style>
+    /* ---------- Software management guidelines: image slider ---------- */
+    @keyframes g-rise { from { opacity: 0; transform: translateY(26px); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
+    @keyframes g-tick { 0% { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.25) rotate(8deg); } 100% { transform: scale(1) rotate(0); } }
+    @keyframes g-wipe-next { from { clip-path: polygon(0 0, 0 0, -25% 100%, 0 100%); } to { clip-path: polygon(0 0, 125% 0, 100% 100%, 0 100%); } }
+    @keyframes g-wipe-prev { from { clip-path: polygon(100% 0, 100% 0, 125% 100%, 100% 100%); } to { clip-path: polygon(-25% 0, 100% 0, 100% 100%, 0 100%); } }
+    @keyframes g-zoom { from { transform: scale(1.35); } to { transform: scale(1.06); } }
+    @keyframes g-drift { from { transform: scale(1.06) translate(0, 0); } to { transform: scale(1.14) translate(-1.5%, -1%); } }
+    @keyframes g-chip { 0% { opacity: 0; transform: translateY(18px) scale(.9); } 100% { opacity: 1; transform: none; } }
+    @keyframes g-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @keyframes g-num { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: none; } }
+    @keyframes g-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes g-blob { to { transform: translate(-28px, 22px) scale(1.15); } }
+
+    .g-card { position: relative; display: grid; grid-template-columns: 1fr; overflow: hidden; border-radius: 2rem; background: linear-gradient(135deg, #0f172a 0%, #12122a 55%, #1b1240 100%); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 40px 80px -30px rgb(var(--brand-600) / .45); color: #fff; outline: none; }
+    .g-card:focus-visible { box-shadow: 0 0 0 3px rgb(var(--brand-400) / .6), 0 40px 80px -30px rgb(var(--brand-600) / .45); }
+    @media (min-width: 1024px) { .g-card { grid-template-columns: 1.05fr .95fr; } }
+    .g-glow { position: absolute; border-radius: 9999px; filter: blur(70px); pointer-events: none; animation: g-blob 14s ease-in-out infinite alternate; }
+    .g-glow-a { width: 22rem; height: 22rem; background: rgb(var(--brand-500) / .45); top: -9rem; left: -7rem; }
+    .g-glow-b { width: 18rem; height: 18rem; background: rgb(var(--brand-700) / .5); bottom: -8rem; right: 18%; animation-delay: -6s; }
+    .g-gridbg { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 42px 42px; -webkit-mask-image: radial-gradient(circle at 25% 30%, #000, transparent 72%); mask-image: radial-gradient(circle at 25% 30%, #000, transparent 72%); }
+
+    /* left: content (all slides stacked in one grid cell so the height is the tallest slide) */
+    .g-content { position: relative; z-index: 2; padding: 2.5rem 2rem 2rem; order: 2; }
+    @media (min-width: 1024px) { .g-content { padding: 3rem 2.5rem 3.5rem 3rem; order: 0; } }
+    .g-stage { display: grid; }
+    .g-text { grid-area: 1 / 1; position: relative; opacity: 0; visibility: hidden; transition: opacity .35s ease, visibility 0s linear .35s; }
+    .g-text.is-active { opacity: 1; visibility: visible; transition-delay: 0s; }
+    .g-bignum { position: absolute; top: -1.4rem; right: 0; font-size: 6.5rem; line-height: 1; font-weight: 900; color: transparent; -webkit-text-stroke: 1.5px rgb(var(--brand-300) / .28); pointer-events: none; user-select: none; }
+    .g-text.is-active .g-bignum { animation: g-num .9s cubic-bezier(.2,.8,.2,1) both; }
+    .g-badge { display: inline-flex; align-items: center; gap: .55rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .72rem; color: rgb(var(--brand-300)); padding: .4rem .8rem; border-radius: 9999px; background: rgb(var(--brand-500) / .16); border: 1px solid rgb(var(--brand-500) / .35); }
+    .g-title { margin-top: 1.1rem; font-size: 1.65rem; line-height: 1.2; font-weight: 800; letter-spacing: -.01em; color: #fff; }
+    @media (min-width: 640px) { .g-title { font-size: 2rem; } }
+    .g-summary { margin-top: .6rem; font-size: .85rem; line-height: 1.7; color: #b4bdd0; max-width: 34rem; }
+    .g-points { margin-top: 1.4rem; display: grid; gap: .85rem; }
+    .g-points li { display: flex; align-items: flex-start; gap: .8rem; font-size: .82rem; line-height: 1.6; color: #d5dbe8; }
+    .g-tick { flex-shrink: 0; width: 1.4rem; height: 1.4rem; margin-top: .05rem; border-radius: .5rem; display: flex; align-items: center; justify-content: center; font-size: .6rem; color: #fff; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); box-shadow: 0 6px 14px -4px rgb(var(--brand-500) / .7); }
+    .g-note { margin-top: 1.5rem; display: flex; align-items: center; gap: .8rem; padding: .9rem 1.1rem; border-radius: 1rem; font-size: .76rem; line-height: 1.55; color: #cbd2e1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .g-note i { color: rgb(var(--brand-300)); font-size: 1.1rem; }
+
+    /* staggered entrance of every text element */
+    .g-text.is-active [data-s] { animation: g-rise .75s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 85ms + .18s); }
+    .g-text.is-active .g-tick { animation: g-tick .6s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 85ms + .45s); }
+
+    /* right: image zone */
+    .g-media { position: relative; z-index: 2; min-height: 17rem; padding: 1.25rem; order: 1; }
+    @media (min-width: 1024px) { .g-media { min-height: 0; padding: 1.5rem 1.5rem 1.5rem 0; order: 0; } }
+    .g-imgs { position: relative; height: 100%; min-height: 15rem; }
+    .g-img { position: absolute; inset: 0; margin: 0; border-radius: 1.5rem; overflow: hidden; opacity: 0; visibility: hidden; background: #1a1a33; box-shadow: 0 30px 60px -25px rgba(0,0,0,.7); }
+    .g-img.is-leaving { opacity: 1; visibility: visible; z-index: 1; }
+    .g-img.is-active { opacity: 1; visibility: visible; z-index: 2; animation: g-wipe-next 1s cubic-bezier(.7,0,.2,1) both; }
+    #gShow[data-dir="prev"] .g-img.is-active { animation-name: g-wipe-prev; }
+    .g-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .g-img.is-active img { animation: g-zoom 1.5s cubic-bezier(.2,.8,.2,1) both, g-drift 10s ease-in-out 1.5s infinite alternate; }
+    .g-img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(10,10,30,.65)); pointer-events: none; }
+    .g-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 5rem; color: rgba(255,255,255,.85); background: linear-gradient(135deg, rgb(var(--brand-600)), rgb(var(--brand-900))); }
+    .g-chip { position: absolute; left: 1.1rem; top: 1.1rem; z-index: 3; display: inline-flex; align-items: center; gap: .55rem; padding: .55rem .95rem; border-radius: 9999px; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    .g-img.is-active .g-chip { animation: g-chip .7s cubic-bezier(.2,.8,.2,1) .7s both, g-float 4s ease-in-out 1.4s infinite; }
+
+    /* overlay controls (sit on top of the image) */
+    .carousel-overlay-controls { position: absolute; left: 2.4rem; right: 2.4rem; bottom: 2.3rem; z-index: 20; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+    @media (min-width: 1024px) { .carousel-overlay-controls { left: 1.3rem; right: 3rem; } }
+    .carousel-overlay-controls > * { pointer-events: auto; }
+    .carousel-overlay-controls button.g-prev, .carousel-overlay-controls button.g-next { width: 2.7rem; height: 2.7rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: .75rem; color: #fff; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: background .3s, transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s, box-shadow .3s; }
+    .carousel-overlay-controls button.g-prev:hover, .carousel-overlay-controls button.g-next:hover { background: rgb(var(--brand-500)); border-color: rgb(var(--brand-300)); transform: scale(1.12); box-shadow: 0 10px 22px -6px rgb(var(--brand-500) / .8); }
+    .carousel-overlay-controls button.g-prev:active, .carousel-overlay-controls button.g-next:active { transform: scale(.94); }
+    .carousel-overlay-controls button:focus-visible { outline: 2px solid rgb(var(--brand-300)); outline-offset: 2px; }
+    .g-dots-wrap { display: flex; align-items: center; gap: .8rem; padding: .5rem .9rem; border-radius: 9999px; background: rgba(10,10,30,.55); border: 1px solid rgba(255,255,255,.16); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    .g-count { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .68rem; color: #e7e9f3; letter-spacing: .06em; }
+    .g-dots { display: flex; align-items: center; gap: .4rem; }
+    .g-dot { width: .5rem; height: .5rem; padding: 0; border-radius: 9999px; background: rgba(255,255,255,.4); transition: width .45s cubic-bezier(.2,.8,.2,1), background .3s; }
+    .g-dot:hover { background: rgba(255,255,255,.75); }
+    .g-dot.is-active { width: 1.7rem; background: rgb(var(--brand-300)); }
+
+    /* auto-play progress line */
+    .g-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; z-index: 25; background: rgba(255,255,255,.08); }
+    .g-progress span { display: block; height: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, rgb(var(--brand-400)), rgb(var(--brand-200))); }
+    .g-progress.is-run span { animation: g-fill var(--dur, 7s) linear forwards; }
+    .g-progress.is-paused span { animation-play-state: paused; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .g-text.is-active [data-s], .g-text.is-active .g-tick, .g-text.is-active .g-bignum, .g-img.is-active, .g-img.is-active img, .g-img.is-active .g-chip, .g-glow { animation: none !important; }
+    }
+</style>
+<script>
+    (function () {
+        var root = document.getElementById('gShow');
+        if (!root) return;
+        var texts = Array.prototype.slice.call(root.querySelectorAll('.g-text'));
+        var imgs = Array.prototype.slice.call(root.querySelectorAll('.g-img'));
+        var total = texts.length;
+        if (total < 2) return;
+
+        var DUR = 7000;
+        var card = root.querySelector('.g-card');
+        var dotsBox = root.querySelector('.g-dots');
+        var counter = root.querySelector('.g-count');
+        var bar = root.querySelector('.g-progress');
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var idx = 0, timer = null, leaveTimer = null, hovering = false;
+        root.style.setProperty('--dur', (DUR / 1000) + 's');
+
+        var dots = texts.map(function (_, i) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'g-dot' + (i === 0 ? ' is-active' : '');
+            b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            b.addEventListener('click', function () { go(i, i < idx ? 'prev' : 'next'); });
+            dotsBox.appendChild(b);
+            return b;
+        });
+
+        function pad(n) { return (n < 10 ? '0' : '') + n; }
+        function paint() { counter.textContent = pad(idx + 1) + ' / ' + pad(total); }
+
+        function runBar() {
+            if (!bar || reduce) return;
+            bar.classList.remove('is-run');
+            void bar.offsetWidth;            // restart the CSS animation
+            bar.classList.add('is-run');
+            bar.classList.toggle('is-paused', hovering);
+        }
+        function schedule() {
+            clearTimeout(timer);
+            if (reduce || hovering || document.hidden) return;
+            timer = setTimeout(function () { go(idx + 1, 'next'); }, DUR);
+        }
+
+        function go(n, dir) {
+            n = (n + total) % total;
+            if (n === idx) { runBar(); schedule(); return; }
+            root.setAttribute('data-dir', dir || 'next');
+            var old = imgs[idx];
+            texts.forEach(function (t, i) {
+                t.classList.toggle('is-active', i === n);
+                t.setAttribute('aria-hidden', i === n ? 'false' : 'true');
+            });
+            imgs.forEach(function (im, i) { if (i !== n && i !== idx) im.classList.remove('is-leaving', 'is-active'); });
+            old.classList.remove('is-active');
+            old.classList.add('is-leaving');          // stays visible underneath while the new image wipes in
+            imgs[n].classList.remove('is-leaving');
+            void imgs[n].offsetWidth;
+            imgs[n].classList.add('is-active');
+            clearTimeout(leaveTimer);
+            leaveTimer = setTimeout(function () { old.classList.remove('is-leaving'); }, 1100);
+            dots.forEach(function (d, i) { d.classList.toggle('is-active', i === n); });
+            idx = n;
+            paint();
+            runBar();
+            schedule();
+        }
+
+        root.querySelector('.g-prev').addEventListener('click', function () { go(idx - 1, 'prev'); });
+        root.querySelector('.g-next').addEventListener('click', function () { go(idx + 1, 'next'); });
+
+        function pause() { hovering = true; clearTimeout(timer); if (bar) bar.classList.add('is-paused'); }
+        function resume() { hovering = false; runBar(); schedule(); }
+        card.addEventListener('mouseenter', pause);
+        card.addEventListener('mouseleave', resume);
+        card.addEventListener('focusin', pause);
+        card.addEventListener('focusout', resume);
+        document.addEventListener('visibilitychange', function () { if (document.hidden) clearTimeout(timer); else { runBar(); schedule(); } });
+
+        card.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowLeft') { go(idx - 1, 'prev'); }
+            if (e.key === 'ArrowRight') { go(idx + 1, 'next'); }
+        });
+
+        var startX = null;
+        card.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+        card.addEventListener('touchend', function (e) {
+            if (startX === null) return;
+            var dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 45) go(idx + (dx < 0 ? 1 : -1), dx < 0 ? 'next' : 'prev');
+            startX = null;
+        }, { passive: true });
+
+        paint();
+        runBar();
+        schedule();
+    })();
+</script>

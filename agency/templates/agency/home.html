@@ -1,0 +1,576 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+    .marquee-track { display: flex; width: max-content; gap: 3rem; animation: marquee 30s linear infinite; }
+    .marquee:hover .marquee-track { animation-play-state: paused; }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(calc(-50% - 1.5rem)); } }
+    @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+</style>
+<!-- Hero Section -->
+<div class="relative min-h-[92vh] flex items-center justify-center overflow-hidden pt-8 pb-16">
+    <canvas id="heroRoboticCanvas" class="absolute inset-0 w-full h-full z-0 pointer-events-auto"></canvas>
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-400/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-10 right-10 w-80 h-80 bg-purple-300/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-xs font-semibold text-brand-700 mb-6 border border-brand-200 shadow-sm animate-float">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="uppercase tracking-widest text-[11px]">{{ site.hero_badge }}</span>
+            <i class="fa-solid fa-arrow-right-long text-brand-500 ml-1"></i>
+        </div>
+
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-4xl mx-auto">
+            {{ site.hero_title_prefix }} <br class="hidden sm:inline">
+            <span class="purple-gradient-text">{{ site.hero_title_highlight }}</span>
+        </h1>
+
+        <p class="mt-6 text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">{{ site.hero_description }}</p>
+
+        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="{% url 'portfolio' %}" class="w-full sm:w-auto purple-bg-gradient text-white font-semibold text-xs uppercase tracking-wider px-8 py-4 rounded-xl shadow-lg shadow-brand-500/30 hover:shadow-xl hover:shadow-brand-500/50 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                <span>Explore Our Work</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            <a href="{% url 'contact' %}" class="w-full sm:w-auto glass-panel hover:bg-white text-slate-800 font-semibold text-xs uppercase tracking-wider px-8 py-4 rounded-xl border border-slate-200 hover:border-brand-300 transition-all flex items-center justify-center gap-2">
+                <i class="fa-regular fa-paper-plane text-brand-600"></i>
+                <span>Schedule Consultation</span>
+            </a>
+        </div>
+
+        <div class="mt-16 grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto text-left">
+            {% for s in stats %}
+            <div class="glass-card p-5 rounded-2xl border-l-4 {% cycle 'border-l-brand-500' 'border-l-brand-600' 'border-l-brand-400' 'border-l-brand-800' %}">
+                <div class="text-2xl sm:text-3xl font-extrabold text-slate-900">{{ s.value }}</div>
+                <div class="text-xs font-medium text-slate-500 mt-1">{{ s.label }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Trust Strip -->
+{% if badges or site.rating_value %}
+<section class="py-10 bg-white border-y border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div class="flex items-center gap-4">
+                <div class="text-5xl font-extrabold purple-gradient-text">{{ site.rating_value }}</div>
+                <div>
+                    <div class="flex gap-1 text-amber-400 text-sm"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                    <p class="text-xs text-slate-600 mt-1 max-w-[16rem]">{{ site.rating_text }}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
+                {% for b in badges %}
+                <{% if b.url %}a href="{{ b.url }}" target="_blank" rel="noopener"{% else %}div{% endif %} class="glass-card px-4 py-3 rounded-2xl flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-xl purple-bg-gradient text-white flex items-center justify-center text-sm shrink-0"><i class="{{ b.icon }}"></i></span>
+                    <span class="leading-tight"><span class="block text-xs font-bold text-slate-900">{{ b.name }}</span><span class="block text-[10px] text-slate-500">{{ b.subtitle }}</span></span>
+                </{% if b.url %}a{% else %}div{% endif %}>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Agency Overview -->
+<section class="py-16 bg-white relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% if guideline_slides %}
+        <!-- Software Management Guidelines slider -->
+        <div class="g-show" id="gShow">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">{{ site.guidelines_badge }}</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">{{ site.guidelines_heading }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-2">{{ site.guidelines_text }}</p>
+            </div>
+
+            <div class="g-card" tabindex="0" aria-roledescription="carousel" aria-label="{{ site.guidelines_badge }}">
+                <div class="g-glow g-glow-a"></div>
+                <div class="g-glow g-glow-b"></div>
+                <div class="g-gridbg"></div>
+
+                <div class="g-content">
+                    <div class="g-stage">
+                        {% for g in guideline_slides %}
+                        <article class="g-text{% if forloop.first %} is-active{% endif %}" aria-hidden="{% if forloop.first %}false{% else %}true{% endif %}">
+                            <span class="g-bignum" aria-hidden="true">{{ forloop.counter|stringformat:"02d" }}</span>
+                            <div class="g-badge" data-s style="--i: 0"><i class="{{ g.icon }}"></i><span>// {{ g.badge }}</span></div>
+                            <h3 class="g-title" data-s style="--i: 1">{{ g.title }}</h3>
+                            {% if g.summary %}<p class="g-summary" data-s style="--i: 2">{{ g.summary }}</p>{% endif %}
+                            <ol class="g-points">
+                                {% for pt in g.point_list %}
+                                <li data-s style="--i: {{ forloop.counter|add:2 }}">
+                                    <span class="g-tick"><i class="fa-solid fa-check"></i></span>
+                                    <span>{{ pt }}</span>
+                                </li>
+                                {% endfor %}
+                            </ol>
+                            {% if g.note %}
+                            <div class="g-note" data-s style="--i: 9"><i class="fa-solid fa-lightbulb"></i><span>{{ g.note }}</span></div>
+                            {% endif %}
+                        </article>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="g-media">
+                    <div class="g-imgs">
+                        {% for g in guideline_slides %}
+                        <figure class="g-img{% if forloop.first %} is-active{% endif %}">
+                            {% if g.image %}<img src="{{ g.image.url }}" alt="{{ g.title }}">{% else %}<div class="g-img-fallback"><i class="{{ g.icon }}"></i></div>{% endif %}
+                            <figcaption class="g-chip"><i class="{{ g.icon }}"></i><span>{{ g.badge }}</span></figcaption>
+                        </figure>
+                        {% endfor %}
+                    </div>
+                    {% if guideline_slides|length > 1 %}
+                    <div class="carousel-overlay-controls">
+                        <button type="button" class="g-prev" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button>
+                        <div class="g-dots-wrap"><span class="g-count"></span><div class="g-dots" role="tablist" aria-label="Slides"></div></div>
+                        <button type="button" class="g-next" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if guideline_slides|length > 1 %}<div class="g-progress"><span></span></div>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Core Services -->
+<section class="py-20 bg-slate-50 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-100/60 px-3 py-1 rounded-full">Our Core Offerings</span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">{{ site.services_heading }}</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-2">{{ site.services_subheading }}</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for s in services %}
+                {% include "agency/_service_card.html" with s=s %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Industries -->
+{% if industries %}
+<section class="py-20 bg-white relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-14">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">{{ site.industries_badge }}</span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">{{ site.industries_heading }}</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-2">{{ site.industries_text }}</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {% for i in industries %}
+            <div class="glass-card rounded-2xl overflow-hidden text-center group">
+                {% if i.image %}
+                <img src="{{ i.image.url }}" alt="{{ i.name }}" class="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-500">
+                {% else %}
+                <div class="w-full aspect-square purple-bg-gradient"></div>
+                {% endif %}
+                <div class="py-3 text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{{ i.name }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Portfolio -->
+<section class="py-20 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+            <div>
+                <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-100/60 px-3 py-1 rounded-full">Selected Projects</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">Featured Case Studies</h2>
+            </div>
+            {% include "agency/_filter_buttons.html" %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="portfolioGrid">
+            {% for p in projects %}{% include "agency/_project_card.html" %}{% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Estimator -->
+<section class="py-20 bg-white">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="glass-panel p-8 sm:p-12 rounded-3xl border border-brand-200 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-20 -bottom-20 w-72 h-72 bg-brand-300/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="text-center max-w-xl mx-auto mb-10">
+                <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Interactive Tool</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Estimate Your Project Investment</h2>
+                <p class="text-xs text-slate-600 mt-1">Get an instant indicative roadmap budget tailored to your required technical scope.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-7 space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">Primary Scope</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" onclick="setCalcScope('web', this)" class="calc-scope-btn border border-brand-500 bg-brand-50 text-brand-700 py-2.5 rounded-xl text-xs font-bold">Web Platform</button>
+                            <button type="button" onclick="setCalcScope('mobile', this)" class="calc-scope-btn border border-slate-200 bg-white text-slate-600 py-2.5 rounded-xl text-xs font-bold">Mobile App</button>
+                            <button type="button" onclick="setCalcScope('full', this)" class="calc-scope-btn border border-slate-200 bg-white text-slate-600 py-2.5 rounded-xl text-xs font-bold">Full Suite</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-slate-800 mb-2">
+                            <span>UI Design &amp; Polish Level</span>
+                            <span id="designVal" class="text-brand-600">Premium Bespoke</span>
+                        </div>
+                        <input type="range" id="sliderDesign" min="1" max="3" value="2" class="w-full accent-brand-600 cursor-pointer" oninput="updateEstimate()">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-slate-800 mb-2">
+                            <span>Estimated Screen/Feature Modules</span>
+                            <span id="screensVal" class="text-brand-600">15 Modules/Screens</span>
+                        </div>
+                        <input type="range" id="sliderScreens" min="5" max="40" value="15" step="5" class="w-full accent-brand-600 cursor-pointer" oninput="updateEstimate()">
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 bg-slate-900 text-white rounded-2xl p-6 text-center shadow-lg relative">
+                    <span class="text-[10px] font-mono text-brand-300 uppercase tracking-widest block mb-1">Estimated Investment Range</span>
+                    <div class="text-3xl font-extrabold text-white my-2" id="estimatedCostDisplay">$8,500 - $14,000</div>
+                    <span class="text-[11px] text-slate-400 block mb-6" id="estimatedTimeDisplay">Estimated Timeline: 4 - 6 Weeks</span>
+                    <a href="{% url 'contact' %}" class="block w-full purple-bg-gradient text-white text-xs font-bold uppercase tracking-wider py-3 rounded-xl hover:shadow-lg transition-all">Lock In Estimate &amp; Talk</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Values -->
+{% if core_values %}
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                {% if site.values_image %}
+                <img src="{{ site.values_image.url }}" alt="{{ site.values_heading }}" class="rounded-3xl shadow-xl w-full aspect-[4/3] object-cover">
+                {% else %}
+                <div class="rounded-3xl purple-bg-gradient w-full aspect-[4/3] flex items-center justify-center text-white/90 shadow-xl"><i class="fa-solid fa-globe text-6xl"></i></div>
+                {% endif %}
+            </div>
+            <div>
+                <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">{{ site.values_badge }}</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">{{ site.values_heading }}</h2>
+                <ul class="mt-6 space-y-5">
+                    {% for v in core_values %}
+                    <li class="flex gap-4">
+                        <span class="w-8 h-8 rounded-lg purple-bg-gradient text-white flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-check"></i></span>
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-900">{{ v.title }}</h4>
+                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ v.description }}</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <a href="{% url 'contact' %}" class="inline-block mt-8 purple-bg-gradient text-white text-xs font-bold uppercase tracking-wider px-8 py-4 rounded-xl shadow-lg shadow-brand-500/25 hover:-translate-y-0.5 transition-all">Get Expert Consultation</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Testimonials Slider -->
+{% if testimonials %}
+<section class="py-20 bg-slate-50 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-100/60 px-3 py-1 rounded-full">Client Feedback</span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">Words From Our Partners</h2>
+        </div>
+        <div class="relative max-w-3xl mx-auto">
+            <div class="glass-card p-8 sm:p-10 rounded-3xl relative text-center">
+                <i class="fa-solid fa-quote-left text-3xl text-brand-300 mb-4 block"></i>
+                <p class="text-sm sm:text-base text-slate-700 italic leading-relaxed" id="testimonialQuote"></p>
+                <div class="mt-6 flex flex-col items-center">
+                    <img id="testimonialAvatar" src="" alt="Client" class="w-14 h-14 rounded-full border-2 border-brand-500 shadow-md mb-2 object-cover">
+                    <h4 class="text-sm font-bold text-slate-900" id="testimonialName"></h4>
+                    <span class="text-xs text-slate-500" id="testimonialRole"></span>
+                    <div class="flex gap-1 text-amber-400 text-xs mt-2" id="testimonialStars"></div>
+                </div>
+            </div>
+            <div class="flex justify-center gap-4 mt-6">
+                <button onclick="prevTestimonial()" class="w-10 h-10 rounded-full glass-panel hover:bg-brand-600 hover:text-white text-slate-700 flex items-center justify-center shadow-md transition-all"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                <button onclick="nextTestimonial()" class="w-10 h-10 rounded-full glass-panel hover:bg-brand-600 hover:text-white text-slate-700 flex items-center justify-center shadow-md transition-all"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Clients -->
+{% if client_logos %}
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">{{ site.clients_heading }}</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-2">{{ site.clients_text }}</p>
+        </div>
+        <div class="marquee">
+            <div class="marquee-track items-center">
+                {% for c in client_logos %}<img src="{{ c.logo.url }}" alt="{{ c.name }}" class="h-12 w-auto opacity-80 hover:opacity-100 transition-opacity">{% endfor %}
+                {% for c in client_logos %}<img src="{{ c.logo.url }}" alt="" aria-hidden="true" class="h-12 w-auto opacity-80">{% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Reviews -->
+{% if reviews %}
+<section class="py-20 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900">{{ site.reviews_heading }}</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-2 flex items-center justify-center gap-2">
+                <span class="flex gap-0.5 text-amber-400"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
+                {{ site.reviews_summary }}
+            </p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for r in reviews %}
+            <div class="glass-card p-6 rounded-2xl flex flex-col">
+                <div class="flex items-center gap-3">
+                    {% if r.avatar %}<img src="{{ r.avatar.url }}" alt="{{ r.name }}" class="w-10 h-10 rounded-full object-cover border-2 border-brand-300">
+                    {% else %}<span class="w-10 h-10 rounded-full purple-bg-gradient text-white flex items-center justify-center text-sm font-bold">{{ r.name|first }}</span>{% endif %}
+                    <div class="leading-tight">
+                        <h4 class="text-xs font-bold text-slate-900">{{ r.name }}</h4>
+                        <span class="text-[10px] text-slate-500">{{ r.date_text }}</span>
+                    </div>
+                </div>
+                <div class="flex gap-0.5 text-amber-400 text-xs mt-3">{% for _ in "12345"|slice:":5" %}{% if forloop.counter <= r.rating %}<i class="fa-solid fa-star"></i>{% else %}<i class="fa-regular fa-star"></i>{% endif %}{% endfor %}</div>
+                <p class="text-xs text-slate-600 mt-3 leading-relaxed flex-1">{{ r.text }}</p>
+                {% if r.source %}<span class="mt-4 text-[10px] font-semibold text-brand-600 inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> {{ r.source }}</span>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- FAQ -->
+{% if faqs %}
+<section class="py-20 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Got Questions?</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Frequently Asked Questions</h2>
+        </div>
+        <div class="space-y-4">
+            {% for f in faqs %}
+            <div class="border border-slate-200 rounded-2xl overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-6 py-4 flex items-center justify-between font-bold text-slate-900 text-sm hover:bg-slate-50 transition-colors">
+                    <span>{{ f.question }}</span>
+                    <i class="fa-solid fa-plus text-xs text-brand-600 transition-transform"></i>
+                </button>
+                <div class="faq-answer hidden px-6 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100">{{ f.answer }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Free Consultation -->
+<section class="py-20 bg-slate-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            <div class="lg:col-span-5 space-y-5">
+                <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-100/60 px-3 py-1 rounded-full">Let's Talk</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900">{{ site.consult_heading }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600">{{ site.consult_text }}</p>
+                <div class="space-y-3 text-xs font-semibold text-slate-700">
+                    <p class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl purple-bg-gradient text-white flex items-center justify-center"><i class="fa-solid fa-phone"></i></span>{{ site.phone }}</p>
+                    <p class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center"><i class="fa-solid fa-envelope"></i></span>{{ site.email }}</p>
+                    <p class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl purple-bg-gradient text-white flex items-center justify-center"><i class="fa-solid fa-location-dot"></i></span>{{ site.address }}</p>
+                </div>
+            </div>
+            <form method="post" action="{% url 'contact' %}" class="lg:col-span-7 glass-card p-8 rounded-3xl space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="subject" value="Free consultation request (home page)">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input type="text" name="name" required placeholder="Your name" class="w-full px-4 py-3 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                    <input type="email" name="email" required placeholder="Email address" class="w-full px-4 py-3 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                </div>
+                <textarea name="message" rows="4" required placeholder="Tell us about your project..." class="w-full px-4 py-3 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-brand-500 focus:bg-white transition-all"></textarea>
+                <button type="submit" class="w-full purple-bg-gradient text-white text-xs font-bold uppercase tracking-wider py-4 rounded-xl shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition-all">Request Free Consultation</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if testimonials %}
+{{ testimonial_data|json_script:"testimonial-data" }}
+{% endif %}
+<script>
+    // Tabs
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('border-brand-600', 'text-brand-600');
+            b.classList.add('border-transparent', 'text-slate-500');
+        });
+        document.getElementById(tabId).classList.remove('hidden');
+        const activeBtn = document.getElementById('btn-' + tabId);
+        activeBtn.classList.add('border-brand-600', 'text-brand-600');
+        activeBtn.classList.remove('border-transparent', 'text-slate-500');
+    }
+
+    // FAQ
+    function toggleFaq(btn) {
+        const answer = btn.nextElementSibling;
+        const icon = btn.querySelector('i');
+        answer.classList.toggle('hidden');
+        icon.classList.toggle('fa-plus');
+        icon.classList.toggle('fa-minus');
+    }
+
+    // Testimonial slider (data comes from the admin panel)
+    (function () {
+        const el = document.getElementById('testimonial-data');
+        if (!el) return;
+        const data = JSON.parse(el.textContent);
+        if (!data.length) return;
+        let idx = 0;
+        function render() {
+            const d = data[idx];
+            document.getElementById('testimonialQuote').innerText = '"' + d.quote + '"';
+            document.getElementById('testimonialName').innerText = d.name;
+            document.getElementById('testimonialRole').innerText = d.role;
+            const av = document.getElementById('testimonialAvatar');
+            if (d.avatar) { av.src = d.avatar; av.style.display = ''; } else { av.style.display = 'none'; }
+            document.getElementById('testimonialStars').innerHTML = '<i class="fa-solid fa-star"></i>'.repeat(d.rating);
+        }
+        window.nextTestimonial = function () { idx = (idx + 1) % data.length; render(); };
+        window.prevTestimonial = function () { idx = (idx - 1 + data.length) % data.length; render(); };
+        render();
+    })();
+
+    // Estimator (prices come from Site Settings in the admin panel)
+    const EST = {
+        perScreen: {{ site.estimator_cost_per_screen }},
+        perDesign: {{ site.estimator_cost_per_design_level }},
+        mobile: {{ site.estimator_mobile_multiplier|stringformat:"s" }},
+        full: {{ site.estimator_full_multiplier|stringformat:"s" }},
+    };
+    let calcScopeMultiplier = 1.0;
+    function setCalcScope(scope, btn) {
+        document.querySelectorAll('.calc-scope-btn').forEach(b => {
+            b.classList.remove('border-brand-500', 'bg-brand-50', 'text-brand-700');
+            b.classList.add('border-slate-200', 'bg-white', 'text-slate-600');
+        });
+        btn.classList.add('border-brand-500', 'bg-brand-50', 'text-brand-700');
+        btn.classList.remove('border-slate-200', 'bg-white', 'text-slate-600');
+        calcScopeMultiplier = scope === 'mobile' ? EST.mobile : scope === 'full' ? EST.full : 1.0;
+        updateEstimate();
+    }
+    function updateEstimate() {
+        const designLevel = parseInt(document.getElementById('sliderDesign').value);
+        const screens = parseInt(document.getElementById('sliderScreens').value);
+        const designText = designLevel === 1 ? 'Standard Clean' : designLevel === 2 ? 'Premium Bespoke' : 'Next-Gen Cyber/Interactive';
+        document.getElementById('designVal').innerText = designText;
+        document.getElementById('screensVal').innerText = screens + ' Modules/Screens';
+        const baseCost = (screens * EST.perScreen + designLevel * EST.perDesign) * calcScopeMultiplier;
+        const minCost = Math.round(baseCost * 0.9);
+        const maxCost = Math.round(baseCost * 1.3);
+        document.getElementById('estimatedCostDisplay').innerText = '$' + minCost.toLocaleString() + ' - $' + maxCost.toLocaleString();
+        const weeks = Math.round(3 + (screens / 5) * calcScopeMultiplier);
+        document.getElementById('estimatedTimeDisplay').innerText = 'Estimated Timeline: ' + weeks + ' - ' + (weeks + 2) + ' Weeks';
+    }
+    updateEstimate();
+
+    // Hero particle network
+    window.addEventListener('load', function () {
+        const canvas = document.getElementById('heroRoboticCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let width, height, particles = [];
+        const mouse = { x: null, y: null, radius: 140 };
+
+        function resizeCanvas() {
+            width = canvas.width = canvas.parentElement.clientWidth;
+            height = canvas.height = canvas.parentElement.clientHeight;
+            initParticles();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('mousemove', function (e) {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 1.2;
+                this.vy = (Math.random() - 0.5) * 1.2;
+                this.radius = Math.random() * 2.5 + 1;
+                this.baseAlpha = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+                if (mouse.x && mouse.y) {
+                    const dx = mouse.x - this.x, dy = mouse.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < mouse.radius && distance > 0) {
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        this.x -= (dx / distance) * force * 3;
+                        this.y -= (dy / distance) * force * 3;
+                    }
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(' + (window.brandRGB || '139,92,246') + ',' + this.baseAlpha + ')';
+                ctx.fill();
+            }
+        }
+        function initParticles() {
+            particles = [];
+            const count = Math.min(Math.floor((width * height) / 11000), 70);
+            for (let i = 0; i < count; i++) particles.push(new Particle());
+        }
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 110) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = 'rgba(' + (window.brandRGB || '139,92,246') + ',' + ((1 - dist / 110) * 0.25) + ')';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        resizeCanvas();
+        animate();
+    });
+</script>
+{% include "agency/_service_assets.html" %}
+{% include "agency/_guideline_carousel.html" %}
+{% include "agency/_portfolio_js.html" %}
+{% endblock %}

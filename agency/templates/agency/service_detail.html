@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}{{ service.title }} | {{ site.site_name }} {{ site.site_suffix }}{% endblock %}
+
+{% block content %}
+<style>
+    @keyframes svc-drift { to { transform: translate(-30px, 24px) scale(1.15); } }
+    @keyframes svc-rot { to { transform: rotate(360deg); } }
+    @keyframes svc-shine { to { background-position: -200% 0; } }
+    @keyframes svc-pop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    .sd-blob { position: absolute; border-radius: 9999px; filter: blur(60px); opacity: .55; animation: svc-drift 12s ease-in-out infinite alternate; pointer-events: none; }
+    .sd-blob-a { width: 22rem; height: 22rem; background: rgb(var(--brand-500)); top: -8rem; right: -6rem; }
+    .sd-blob-b { width: 16rem; height: 16rem; background: rgb(var(--brand-700)); bottom: -6rem; left: -4rem; animation-delay: -5s; }
+    .sd-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 44px 44px; -webkit-mask-image: radial-gradient(circle at 70% 40%, #000, transparent 70%); mask-image: radial-gradient(circle at 70% 40%, #000, transparent 70%); }
+    .sd-shine { background: linear-gradient(90deg, #fff 0%, rgb(var(--brand-300)) 40%, #fff 80%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: svc-shine 5s linear infinite; }
+
+    .sd-orbit { position: relative; width: 15rem; height: 15rem; display: flex; align-items: center; justify-content: center; }
+    .sd-orbit::before { content: ""; position: absolute; inset: 0; border-radius: 9999px; border: 1px dashed rgb(var(--brand-300) / .5); animation: svc-rot 24s linear infinite; }
+    .sd-orbit::after { content: ""; position: absolute; inset: 1.8rem; border-radius: 9999px; border: 1px solid rgb(var(--brand-400) / .3); animation: svc-rot 16s linear infinite reverse; }
+    .sd-orbit-ring { position: absolute; inset: 0; animation: svc-rot 14s linear infinite; }
+    .sd-orbit-ring i { position: absolute; top: -.45rem; left: calc(50% - .45rem); width: .9rem; height: .9rem; border-radius: 9999px; background: rgb(var(--brand-300)); box-shadow: 0 0 20px rgb(var(--brand-400)); }
+    .sd-core { width: 6.5rem; height: 6.5rem; border-radius: 1.8rem 1.8rem 1.8rem .6rem; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; color: #fff; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); box-shadow: 0 0 60px rgb(var(--brand-500) / .55); animation: svc-float 5s ease-in-out infinite; }
+
+    .sd-pill { display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .9rem; border-radius: 999px; font-size: .7rem; font-weight: 700; color: #e9e5ff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(6px); }
+    .sd-btn-solid { display: inline-flex; align-items: center; gap: .6rem; padding: .95rem 1.6rem; border-radius: .9rem; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); box-shadow: 0 16px 30px -12px rgb(var(--brand-500) / .8); transition: transform .3s, box-shadow .3s; }
+    .sd-btn-solid:hover { transform: translateY(-3px); box-shadow: 0 22px 36px -12px rgb(var(--brand-500) / .9); }
+    .sd-btn-ghost { display: inline-flex; align-items: center; gap: .6rem; padding: .95rem 1.6rem; border-radius: .9rem; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #fff; border: 1.5px solid rgba(255,255,255,.3); transition: background .3s, transform .3s; }
+    .sd-btn-ghost:hover { background: rgba(255,255,255,.12); transform: translateY(-3px); }
+
+    .tech-chip { display: inline-flex; align-items: center; gap: .5rem; padding: .6rem 1.1rem; border-radius: 999px; font-size: .75rem; font-weight: 800; color: rgb(var(--brand-700)); background: rgb(var(--brand-500) / .08); border: 1px solid rgb(var(--brand-500) / .28); transition: transform .3s cubic-bezier(.2,.8,.2,1), background .3s, color .3s, box-shadow .3s; }
+    .tech-chip:hover { transform: translateY(-4px) scale(1.05); color: #fff; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); box-shadow: 0 14px 24px -10px rgb(var(--brand-600) / .6); }
+    html.dark .tech-chip { color: rgb(var(--brand-300)); }
+
+    .sd-timeline { position: relative; padding-left: 3.5rem; }
+    .sd-timeline::before { content: ""; position: absolute; left: 1.1rem; top: .5rem; bottom: .5rem; width: 3px; border-radius: 3px; background: linear-gradient(rgb(var(--brand-400)), rgb(var(--brand-700))); transform-origin: top; transform: scaleY(0); transition: transform 1.8s cubic-bezier(.2,.8,.2,1); }
+    .sd-timeline.is-in::before { transform: scaleY(1); }
+    .sd-step { position: relative; padding-bottom: 2rem; }
+    .sd-step:last-child { padding-bottom: 0; }
+    .sd-node { position: absolute; left: -3.5rem; top: 0; width: 2.4rem; height: 2.4rem; border-radius: .8rem; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 900; color: #fff; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); box-shadow: 0 0 0 5px rgb(var(--brand-500) / .16); }
+    .sd-step-card { padding: 1.25rem 1.4rem; border-radius: 1.1rem; background: rgba(255,255,255,.9); border: 1px solid rgba(226,232,240,.9); transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .3s; }
+    .sd-step-card:hover { transform: translateX(8px); border-color: rgb(var(--brand-400)); box-shadow: 0 18px 32px -18px rgb(var(--brand-500) / .45); }
+    html.dark .sd-step-card { background: rgba(22,22,38,.9); border-color: rgba(255,255,255,.07); }
+
+    .sd-image { position: relative; border-radius: 1.75rem; overflow: hidden; box-shadow: 0 30px 60px -25px rgb(var(--brand-600) / .5); transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+    .sd-image:hover { transform: perspective(900px) rotateY(-4deg) rotateX(2deg) scale(1.02); }
+    .sd-image::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.22) 50%, transparent 65%); transform: translateX(-120%); transition: transform .9s; }
+    .sd-image:hover::after { transform: translateX(120%); }
+</style>
+
+<!-- Hero -->
+<section class="pt-4 pb-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="relative overflow-hidden rounded-[2rem] bg-slate-900 text-white px-6 sm:px-12 py-14 sm:py-20 border border-slate-800 shadow-2xl">
+            <div class="sd-blob sd-blob-a"></div>
+            <div class="sd-blob sd-blob-b"></div>
+            <div class="sd-grid"></div>
+
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                <div class="lg:col-span-8">
+                    <nav class="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400" aria-label="Breadcrumb">
+                        <a href="{% url 'home' %}" class="hover:text-white transition-colors">Home</a>
+                        <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                        <a href="{% url 'services' %}" class="hover:text-white transition-colors">Services</a>
+                        <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                        <span class="text-brand-300">{{ service.title }}</span>
+                    </nav>
+                    <h1 class="mt-5 text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1]"><span class="sd-shine">{{ service.title }}</span></h1>
+                    {% if service.tagline %}<p class="mt-5 text-sm sm:text-lg text-slate-300 max-w-2xl leading-relaxed">{{ service.tagline }}</p>
+                    {% else %}<p class="mt-5 text-sm sm:text-lg text-slate-300 max-w-2xl leading-relaxed">{{ service.short_description }}</p>{% endif %}
+
+                    <div class="mt-6 flex flex-wrap gap-2">
+                        {% if features %}<span class="sd-pill"><i class="fa-solid fa-layer-group text-brand-300"></i>{{ features|length }} Key Features</span>{% endif %}
+                        {% if steps %}<span class="sd-pill"><i class="fa-solid fa-route text-brand-300"></i>{{ steps|length }}-Step Delivery</span>{% endif %}
+                        {% if service.tech_list %}<span class="sd-pill"><i class="fa-solid fa-microchip text-brand-300"></i>{{ service.tech_list|length }} Technologies</span>{% endif %}
+                    </div>
+
+                    <div class="mt-9 flex flex-wrap gap-4">
+                        <a href="{% url 'contact' %}" class="sd-btn-solid"><span>{{ service.detail_cta }}</span><i class="fa-solid fa-arrow-right"></i></a>
+                        <a href="{% url 'services' %}" class="sd-btn-ghost"><i class="fa-solid fa-arrow-left"></i><span>All Services</span></a>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 flex justify-center">
+                    <div class="sd-orbit">
+                        <div class="sd-orbit-ring"><i></i></div>
+                        <div class="sd-core"><i class="{{ service.icon }}"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Overview -->
+<section class="py-14">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="reveal">
+                <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Overview</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-4 leading-tight">{{ service.full_title|default:service.title }}</h2>
+                {% for para in service.overview_paragraphs %}
+                <p class="text-sm text-slate-600 mt-4 leading-relaxed">{{ para }}</p>
+                {% empty %}
+                <p class="text-sm text-slate-600 mt-4 leading-relaxed">{{ service.full_description|default:service.short_description }}</p>
+                {% endfor %}
+            </div>
+            <div class="reveal" style="--d: 2">
+                {% if service.detail_image %}
+                <div class="sd-image"><img src="{{ service.detail_image.url }}" alt="{{ service.title }}" class="w-full aspect-[3/2] object-cover"></div>
+                {% else %}
+                <div class="sd-image purple-bg-gradient aspect-[3/2] flex items-center justify-center text-white/90 text-7xl"><i class="{{ service.icon }}"></i></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- What's included -->
+{% if features %}
+<section class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-100/60 px-3 py-1 rounded-full">What's Included</span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">Everything You Get With {{ service.title }}</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for f in features %}
+            <div class="reveal h-full" style="--d: {{ forloop.counter0 }}">
+                <article class="svc-card">
+                    <span class="svc-num" aria-hidden="true">{{ forloop.counter|stringformat:"02d" }}</span>
+                    <div class="svc-icon-wrap"><div class="svc-icon"><i class="{{ f.icon }}"></i></div></div>
+                    <h3 class="svc-title"><span>{{ f.title }}</span></h3>
+                    <p class="svc-text">{{ f.description }}</p>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Technologies -->
+{% if service.tech_list %}
+<section class="py-16">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="reveal">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Tools &amp; Technologies</span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">Built With Proven Technology</h2>
+        </div>
+        <div class="mt-10 flex flex-wrap justify-center gap-3">
+            {% for t in service.tech_list %}
+            <span class="reveal" style="--d: {{ forloop.counter0 }}"><span class="tech-chip"><i class="fa-solid fa-bolt text-[10px]"></i>{{ t }}</span></span>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Delivery steps -->
+{% if steps %}
+<section class="py-16 bg-slate-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-14 reveal">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-100/60 px-3 py-1 rounded-full">How We Deliver</span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">From First Call To Launch</h2>
+        </div>
+        <ol class="sd-timeline draw">
+            {% for st in steps %}
+            <li class="sd-step reveal" style="--d: {{ forloop.counter0 }}">
+                <span class="sd-node">{{ forloop.counter|stringformat:"02d" }}</span>
+                <div class="sd-step-card">
+                    <h3 class="text-base font-extrabold text-slate-900">{{ st.title }}</h3>
+                    <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">{{ st.description }}</p>
+                </div>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>
+{% endif %}
+
+<!-- FAQ -->
+{% if faqs %}
+<section class="py-16">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-10 reveal">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Questions</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3">{{ service.title }} FAQs</h2>
+        </div>
+        <div class="space-y-4">
+            {% for f in faqs %}
+            <div class="reveal border border-slate-200 rounded-2xl overflow-hidden" style="--d: {{ forloop.counter0 }}">
+                <button type="button" onclick="toggleSvcFaq(this)" class="w-full text-left px-6 py-4 flex items-center justify-between font-bold text-slate-900 text-sm hover:bg-slate-50 transition-colors">
+                    <span>{{ f.question }}</span>
+                    <i class="fa-solid fa-plus text-xs text-brand-600"></i>
+                </button>
+                <div class="hidden px-6 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">{{ f.answer }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Other services -->
+{% if related %}
+<section class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12 reveal">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-100/60 px-3 py-1 rounded-full">Explore More</span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">Other Services You May Need</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for s in related %}
+                {% include "agency/_service_card.html" with s=s %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% include "agency/_service_assets.html" %}
+<script>
+    function toggleSvcFaq(btn) {
+        var answer = btn.nextElementSibling;
+        var icon = btn.querySelector('i');
+        answer.classList.toggle('hidden');
+        icon.classList.toggle('fa-plus');
+        icon.classList.toggle('fa-minus');
+    }
+</script>
+{% endblock %}

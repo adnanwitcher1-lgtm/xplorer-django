@@ -1,0 +1,24 @@
+<div class="reveal h-full" style="--d: {{ forloop.counter0 }}">
+    <article class="svc-card">
+        <span class="svc-num" aria-hidden="true">{{ forloop.counter|stringformat:"02d" }}</span>
+        <div class="svc-icon-wrap"><div class="svc-icon"><i class="{{ s.icon }}"></i></div></div>
+        <h3 class="svc-title"><span>{{ s.title }}</span></h3>
+        {% if full %}
+            {% if s.full_title and s.full_title != s.title %}<p class="text-[11px] font-semibold text-brand-600 mt-1">{{ s.full_title }}</p>{% endif %}
+            <p class="svc-text">{{ s.full_description|default:s.short_description }}</p>
+            {% if s.feature_list %}
+            <ul class="mt-4 space-y-2 text-xs font-semibold text-slate-700">
+                {% for f in s.feature_list %}
+                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i><span>{{ f }}</span></li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% else %}
+            <p class="svc-text">{{ s.short_description }}</p>
+        {% endif %}
+        <div class="svc-foot">
+            <a href="{{ s.get_absolute_url }}" class="svc-btn"><span>View More</span><i class="fa-solid fa-arrow-right"></i></a>
+            <a href="{{ s.get_guide_url }}?download=1" target="_blank" rel="noopener" class="svc-btn svc-btn-ghost" title="Download the brochure and open the full guide"><i class="fa-solid fa-download"></i><span>{% if full %}Download Brochure{% else %}Brochure{% endif %}</span></a>
+        </div>
+    </article>
+</div>

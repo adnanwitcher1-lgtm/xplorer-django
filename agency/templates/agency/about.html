@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}About Us | {{ site.site_name }} {{ site.site_suffix }}{% endblock %}
+{% block content %}
+<section class="py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Our Story</span>
+            <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 mt-3">{{ site.about_heading }}</h1>
+            <p class="text-sm text-slate-600 mt-4">{{ site.about_intro }}</p>
+        </div>
+
+        <div class="glass-panel p-8 sm:p-12 rounded-3xl border border-slate-200 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                <h3 class="text-2xl font-bold text-slate-900">{{ site.about_subheading }}</h3>
+                <p class="text-xs sm:text-sm text-slate-600 mt-4 leading-relaxed">{{ site.about_paragraph_1 }}</p>
+                <p class="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed">{{ site.about_paragraph_2 }}</p>
+            </div>
+            <div>
+                {% if site.about_image %}
+                <img src="{{ site.about_image.url }}" alt="Our team" class="rounded-2xl shadow-xl w-full aspect-[3/2] object-cover">
+                {% else %}
+                <div class="rounded-2xl purple-bg-gradient w-full aspect-[3/2] flex flex-col items-center justify-center text-white/90 shadow-xl">
+                    <i class="fa-solid fa-users text-5xl mb-3"></i>
+                    <span class="text-xs font-semibold">Upload a team photo from Admin &rarr; Site Settings</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if team %}
+        <div class="text-center max-w-2xl mx-auto mt-20 mb-12">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">The People</span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">{{ site.team_heading }}</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-2">{{ site.team_subheading }}</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {% for m in team %}
+            <div class="glass-card rounded-2xl overflow-hidden text-center">
+                {% if m.photo %}
+                <img src="{{ m.photo.url }}" alt="{{ m.name }}" class="w-full aspect-square object-cover">
+                {% else %}
+                <div class="w-full aspect-square purple-bg-gradient flex items-center justify-center text-white text-6xl font-extrabold">{{ m.name|first }}</div>
+                {% endif %}
+                <div class="p-5">
+                    <h4 class="text-sm font-bold text-slate-900">{{ m.name }}</h4>
+                    <span class="text-xs text-brand-600 font-semibold">{{ m.role }}</span>
+                    {% if m.bio %}<p class="text-xs text-slate-600 mt-2">{{ m.bio }}</p>{% endif %}
+                    {% if m.linkedin_url %}
+                    <a href="{{ m.linkedin_url }}" class="inline-flex mt-3 w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white items-center justify-center text-slate-500 transition-colors"><i class="fa-brands fa-linkedin-in"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Search | {{ site.site_name }} {{ site.site_suffix }}{% endblock %}
+{% block content %}
+<section class="py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900">Search results</h1>
+        <p class="text-sm text-slate-600 mt-2">{% if q %}{{ total }} result{{ total|pluralize }} for "{{ q }}"{% else %}Type something in the search box above.{% endif %}</p>
+
+        {% if results.services %}
+        <h2 class="text-xs font-bold text-brand-600 uppercase tracking-widest mt-10 mb-3">Services</h2>
+        <div class="space-y-3">
+            {% for s in results.services %}
+            <a href="{% url 'services' %}" class="glass-card block p-5 rounded-2xl">
+                <h3 class="text-sm font-bold text-slate-900">{{ s.title }}</h3>
+                <p class="text-xs text-slate-600 mt-1">{{ s.short_description }}</p>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if results.projects %}
+        <h2 class="text-xs font-bold text-brand-600 uppercase tracking-widest mt-10 mb-3">Projects</h2>
+        <div class="space-y-3">
+            {% for p in results.projects %}
+            <a href="{% url 'portfolio' %}" class="glass-card block p-5 rounded-2xl">
+                <h3 class="text-sm font-bold text-slate-900">{{ p.title }}</h3>
+                <p class="text-xs text-slate-600 mt-1">{{ p.description }}</p>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if results.posts %}
+        <h2 class="text-xs font-bold text-brand-600 uppercase tracking-widest mt-10 mb-3">Blog</h2>
+        <div class="space-y-3">
+            {% for post in results.posts %}
+            <a href="{% url 'blog_detail' post.slug %}" class="glass-card block p-5 rounded-2xl">
+                <h3 class="text-sm font-bold text-slate-900">{{ post.title }}</h3>
+                <p class="text-xs text-slate-600 mt-1">{{ post.excerpt }}</p>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

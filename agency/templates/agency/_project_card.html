@@ -1,0 +1,16 @@
+<div class="portfolio-card glass-card rounded-2xl overflow-hidden group" data-category="{{ p.category }}">
+    <div class="relative h-48 bg-slate-900 overflow-hidden">
+        {% if p.image %}
+        <img src="{{ p.image.url }}" alt="{{ p.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90">
+        {% endif %}
+        <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase">{{ p.badge }}</span>
+    </div>
+    <div class="p-6">
+        <h3 class="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{{ p.title }}</h3>
+        <p class="text-xs text-slate-600 mt-2">{{ p.description }}</p>
+        <a href="{{ p.get_absolute_url }}" class="mt-4 text-xs font-bold text-brand-600 hover:underline inline-flex items-center gap-1">
+            <span>View Case Details</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+        </a>
+    </div>
+</div>

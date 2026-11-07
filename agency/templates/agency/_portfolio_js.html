@@ -1,0 +1,16 @@
+<script>
+    function filterPortfolio(category, btn) {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('bg-brand-600', 'text-white', 'shadow-md');
+            b.classList.add('bg-white', 'text-slate-600');
+        });
+        btn.classList.add('bg-brand-600', 'text-white', 'shadow-md');
+        btn.classList.remove('bg-white', 'text-slate-600');
+        document.querySelectorAll('.portfolio-card').forEach(item => {
+            item.style.display = (category === 'all' || item.dataset.category === category) ? 'block' : 'none';
+        });
+    }
+    document.querySelectorAll('.project-details-btn').forEach(function (b) {
+        b.addEventListener('click', function () { openModal(b.dataset.modalTitle, b.dataset.modalBody); });
+    });
+</script>

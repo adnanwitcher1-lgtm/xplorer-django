@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Testimonials | {{ site.site_name }} {{ site.site_suffix }}{% endblock %}
+{% block content %}
+<section class="py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Endorsements</span>
+            <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 mt-3">What Leaders Say About Us</h1>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {% for t in testimonials %}
+            <div class="glass-card p-8 rounded-3xl">
+                <div class="flex items-center gap-4 mb-4">
+                    {% if t.avatar %}<img src="{{ t.avatar.url }}" class="w-12 h-12 rounded-full border-2 border-brand-500 object-cover" alt="{{ t.name }}">{% endif %}
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-900">{{ t.name }}</h4>
+                        <span class="text-xs text-slate-500">{{ t.role }}</span>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed italic">"{{ t.quote }}"</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

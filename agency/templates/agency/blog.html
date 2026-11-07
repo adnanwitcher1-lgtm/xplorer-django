@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Blog | {{ site.site_name }} {{ site.site_suffix }}{% endblock %}
+{% block content %}
+<section class="py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Insights &amp; Thought Leadership</span>
+            <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 mt-3">The Xplorer Journal</h1>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for post in posts %}
+            <a href="{% url 'blog_detail' post.slug %}" class="block">
+                <article class="glass-card rounded-2xl overflow-hidden h-full">
+                    {% if post.image %}<img src="{{ post.image.url }}" class="w-full h-44 object-cover" alt="{{ post.title }}">{% endif %}
+                    <div class="p-6">
+                        <span class="text-[10px] text-brand-600 font-bold uppercase tracking-wider">{{ post.category }}</span>
+                        <h3 class="text-sm font-bold text-slate-900 mt-2">{{ post.title }}</h3>
+                        <p class="text-xs text-slate-600 mt-2">{{ post.excerpt }}</p>
+                    </div>
+                </article>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

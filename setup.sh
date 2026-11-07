@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# One-shot setup for Linux / macOS
+set -e
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py makemigrations agency
+python manage.py migrate
+python manage.py seed_data
+echo
+echo "Done. Start the site with:  source venv/bin/activate && python manage.py runserver"
+echo "Site:  http://127.0.0.1:8000/     Admin: http://127.0.0.1:8000/admin/  (admin / admin12345)"

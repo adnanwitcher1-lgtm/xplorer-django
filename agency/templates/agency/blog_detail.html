@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} | {{ site.site_name }} {{ site.site_suffix }}{% endblock %}
+{% block content %}
+<section class="py-12">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <a href="{% url 'blog' %}" class="text-xs font-bold text-brand-600 hover:underline"><i class="fa-solid fa-arrow-left text-[10px]"></i> Back to Journal</a>
+        <span class="block mt-6 text-[10px] text-brand-600 font-bold uppercase tracking-wider">{{ post.category }} &middot; {{ post.created_at|date:"M d, Y" }}</span>
+        <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-2">{{ post.title }}</h1>
+        {% if post.image %}<img src="{{ post.image.url }}" alt="{{ post.title }}" class="rounded-2xl shadow-xl w-full mt-8">{% endif %}
+        <p class="text-sm text-slate-700 font-semibold mt-8 leading-relaxed">{{ post.excerpt }}</p>
+        {% for para in post.paragraphs %}
+        <p class="text-sm text-slate-600 mt-4 leading-relaxed">{{ para }}</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ site.meta_title }}{% endblock %}</title>
+    <!-- Theme colors: applied before first paint so there is no flash -->
+    <script>
+        window.THEMES = {
+            vibrant: { 50: '250 245 255', 100: '243 232 255', 200: '233 213 255', 300: '216 180 254', 400: '192 132 252', 500: '168 85 247', 600: '147 51 234', 700: '126 34 206', 800: '107 33 168', 900: '88 28 135' },
+            indigo:  { 50: '238 242 255', 100: '224 231 255', 200: '199 210 254', 300: '165 180 252', 400: '129 140 248', 500: '99 102 241', 600: '79 70 229', 700: '67 56 202', 800: '55 48 163', 900: '49 46 129' },
+            violet:  { 50: '245 243 255', 100: '237 233 254', 200: '221 214 254', 300: '196 181 253', 400: '167 139 250', 500: '139 92 246', 600: '124 58 237', 700: '109 40 217', 800: '91 33 182', 900: '76 29 149' }
+        };
+        window.applyTheme = function (name) {
+            var t = window.THEMES[name] || window.THEMES.violet;
+            var root = document.documentElement;
+            for (var k in t) root.style.setProperty('--brand-' + k, t[k]);
+            window.brandRGB = t[500].split(' ').join(',');
+            root.setAttribute('data-theme', name in window.THEMES ? name : 'violet');
+        };
+        (function () {
+            var saved = 'violet';
+            try { saved = localStorage.getItem('accentTheme') || 'violet'; } catch (e) {}
+            window.applyTheme(saved);
+        })();
+    </script>
+    <!-- Light / dark mode: applied before first paint -->
+    <script>
+        (function () {
+            var mode = 'light';
+            try { mode = localStorage.getItem('colorMode') === 'dark' ? 'dark' : 'light'; } catch (e) {}
+            document.documentElement.classList.toggle('dark', mode === 'dark');
+            document.documentElement.setAttribute('data-mode', mode);
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        (function () {
+            var shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+            var scale = {};
+            shades.forEach(function (s) { scale[s] = 'rgb(var(--brand-' + s + ') / <alpha-value>)'; });
+            window.__brandScale = scale;
+        })();
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // brand / purple / indigo / violet all follow the selected accent theme
+                        brand: window.__brandScale,
+                        purple: window.__brandScale,
+                        indigo: window.__brandScale,
+                        violet: window.__brandScale,
+                    },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'] },
+                    animation: { 'float': 'float 6s ease-in-out infinite' },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-15px) rotate(3deg)' },
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FAFAFC; color: #0F172A; overflow-x: hidden; }
+        .glass-panel { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgb(var(--brand-500) / 0.15); }
+        .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(226,232,240,0.8); box-shadow: 0 10px 30px -10px rgb(var(--brand-500) / 0.05); transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .glass-card:hover { border-color: rgb(var(--brand-500) / 0.4); transform: translateY(-4px); box-shadow: 0 20px 35px -10px rgb(var(--brand-500) / 0.15); }
+        .purple-gradient-text { background: linear-gradient(135deg, rgb(var(--brand-600)) 0%, rgb(var(--brand-400)) 50%, rgb(var(--brand-900)) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .purple-bg-gradient { background: linear-gradient(135deg, rgb(var(--brand-500)) 0%, rgb(var(--brand-700)) 100%); }
+        .theme-dot { transition: transform .2s, box-shadow .2s; }
+        .theme-dot.is-active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgb(var(--brand-400)); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #F1F5F9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(var(--brand-300)); border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgb(var(--brand-500)); }
+        .modal-active { opacity: 1 !important; pointer-events: auto !important; }
+
+        /* ---------- Light / dark toggle ---------- */
+        .theme-toggle { position: relative; width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; overflow: hidden; flex-shrink: 0; transition: background-color .3s, border-color .3s, color .3s, transform .2s; }
+        .theme-toggle:hover { transform: translateY(-1px); border-color: rgb(var(--brand-400)); color: rgb(var(--brand-600)); }
+        .theme-toggle i { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: .9rem; transition: transform .5s cubic-bezier(.2,.8,.2,1), opacity .3s; }
+        .theme-toggle .tt-sun { opacity: 0; transform: translateY(100%) rotate(-90deg); }
+        html.dark .theme-toggle .tt-sun { opacity: 1; transform: none; color: #fbbf24; }
+        html.dark .theme-toggle .tt-moon { opacity: 0; transform: translateY(-100%) rotate(90deg); }
+        html.theme-anim body, html.theme-anim body * { transition: background-color .35s ease, color .35s ease, border-color .35s ease !important; }
+
+        html.dark { color-scheme: dark; }
+        html.dark body { background-color: #0a0a14; color: #e2e8f0; }
+        html.dark .bg-white { background-color: #12121f; }
+        html.dark .bg-slate-50 { background-color: #0e0e1a; }
+        html.dark .bg-slate-100 { background-color: #1a1a2b; }
+        html.dark .hover\:bg-slate-100:hover { background-color: #222238; }
+        html.dark .hover\:bg-white:hover, html.dark .focus\:bg-white:focus { background-color: #1a1a2b; }
+        html.dark .bg-brand-50 { background-color: rgb(var(--brand-500) / .14); }
+        html.dark .bg-brand-100\/60 { background-color: rgb(var(--brand-500) / .2); }
+        html.dark .hover\:bg-brand-50:hover { background-color: rgb(var(--brand-500) / .16); }
+        html.dark .text-slate-900 { color: #f1f5f9; }
+        html.dark .text-slate-800 { color: #e2e8f0; }
+        html.dark .text-slate-700 { color: #cbd5e1; }
+        html.dark .text-slate-600 { color: #a9b4c6; }
+        html.dark .text-slate-500 { color: #94a3b8; }
+        html.dark .hover\:text-slate-800:hover { color: #f1f5f9; }
+        html.dark .text-brand-600, html.dark .text-brand-700 { color: rgb(var(--brand-400)); }
+        html.dark .border-slate-100 { border-color: #1f1f33; }
+        html.dark .border-slate-200 { border-color: #2a2a42; }
+        html.dark .border-brand-200 { border-color: rgb(var(--brand-500) / .35); }
+        html.dark .glass-panel { background: rgba(20,20,36,.78); border-color: rgb(var(--brand-500) / .25); }
+        html.dark .glass-card { background: rgba(22,22,38,.85); border-color: rgba(255,255,255,.07); box-shadow: 0 10px 30px -10px rgba(0,0,0,.5); }
+        html.dark .glass-card:hover { border-color: rgb(var(--brand-500) / .55); box-shadow: 0 20px 35px -10px rgb(var(--brand-500) / .25); }
+        html.dark input, html.dark textarea { color: #e2e8f0; }
+        html.dark input::placeholder, html.dark textarea::placeholder { color: #64748b; }
+        html.dark .custom-scrollbar::-webkit-scrollbar-track { background: #14141f; }
+        html.dark .theme-toggle { background: #1a1a2b; border-color: #2a2a42; color: #cbd5e1; }
+    </style>
+</head>
+<body class="selection:bg-brand-500 selection:text-white custom-scrollbar">
+
+    <!-- Floating Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-50 px-4 sm:px-8 py-3 transition-all duration-300" id="mainHeader">
+        <div class="max-w-7xl mx-auto glass-panel rounded-2xl px-5 py-3 flex items-center justify-between shadow-lg shadow-purple-900/5">
+            <a href="{% url 'home' %}" class="flex items-center gap-3 group">
+                <div class="relative w-10 h-10 rounded-xl purple-bg-gradient flex items-center justify-center shadow-md shadow-brand-500/30 group-hover:scale-105 transition-transform duration-300">
+                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4l16 16"></path>
+                        <path d="M20 4L4 20"></path>
+                        <circle cx="12" cy="12" r="3" class="fill-white/30 stroke-white"></circle>
+                    </svg>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-brand-300 rounded-full animate-ping"></span>
+                </div>
+                <div>
+                    <span class="font-extrabold text-lg tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors">{{ site.site_name }}</span>
+                    <span class="font-semibold text-xs tracking-widest text-brand-600 uppercase block -mt-1">{{ site.site_suffix }}</span>
+                </div>
+            </a>
+
+            <nav class="hidden lg:flex items-center gap-1 xl:gap-2 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                {% for key, label, url in nav_items %}
+                <a href="{{ url }}" class="nav-link px-3 py-2 rounded-lg hover:text-brand-600 hover:bg-brand-50 transition-all {% if active == key %}text-brand-600 bg-brand-50{% endif %}">{{ label }}</a>
+                {% endfor %}
+            </nav>
+
+            <div class="hidden sm:flex items-center gap-3">
+                <button type="button" class="theme-toggle" onclick="toggleColorMode()" aria-label="Switch between light and dark mode" title="Light / Dark mode"><i class="fa-solid fa-moon tt-moon"></i><i class="fa-solid fa-sun tt-sun"></i></button>
+                <form action="{% url 'search' %}" method="get" class="relative">
+                    <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Search..." class="w-36 md:w-44 pl-8 pr-3 py-1.5 text-xs rounded-xl bg-slate-100 border border-slate-200 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all">
+                    <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+                </form>
+                <a href="{% url 'contact' %}" class="purple-bg-gradient text-white text-xs font-semibold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-md shadow-brand-500/25 hover:shadow-lg hover:shadow-brand-500/40 hover:-translate-y-0.5 transition-all">
+                    Get In Touch
+                </a>
+            </div>
+
+            <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-none">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <div id="mobileMenu" class="hidden lg:hidden max-w-7xl mx-auto mt-2 glass-panel rounded-2xl p-5 shadow-xl flex-col gap-3 text-sm font-medium">
+            {% for key, label, url in nav_items %}
+            <a href="{{ url }}" class="px-4 py-2.5 rounded-xl hover:bg-brand-50 hover:text-brand-600">{{ label }}</a>
+            {% endfor %}
+            <button type="button" onclick="toggleColorMode()" class="flex items-center justify-between w-full px-4 py-2.5 rounded-xl hover:bg-brand-50 hover:text-brand-600 text-left">
+                <span>Dark / Light mode</span>
+                <span class="theme-toggle pointer-events-none"><i class="fa-solid fa-moon tt-moon"></i><i class="fa-solid fa-sun tt-sun"></i></span>
+            </button>
+            <a href="{% url 'contact' %}" class="block text-center w-full purple-bg-gradient text-white text-xs font-bold uppercase tracking-wider py-3 rounded-xl mt-2">Start a Project</a>
+        </div>
+    </header>
+
+    <!-- Accent Theme Bar -->
+    <div class="fixed bottom-6 left-6 z-40 hidden md:flex items-center gap-2 glass-panel px-3 py-2 rounded-2xl shadow-xl text-xs">
+        <span class="text-slate-500 font-semibold text-[10px] uppercase tracking-wider pr-1">Accent Theme:</span>
+        <button type="button" data-theme-btn="vibrant" onclick="changeAccentTone('vibrant')" style="background:#9333ea" class="theme-dot w-5 h-5 rounded-full hover:scale-110" title="Vibrant Purple"></button>
+        <button type="button" data-theme-btn="indigo" onclick="changeAccentTone('indigo')" style="background:#4f46e5" class="theme-dot w-5 h-5 rounded-full hover:scale-110" title="Deep Indigo"></button>
+        <button type="button" data-theme-btn="violet" onclick="changeAccentTone('violet')" style="background:#8b5cf6" class="theme-dot w-5 h-5 rounded-full hover:scale-110" title="Soft Violet"></button>
+    </div>
+
+    <main id="app-container" class="pt-20">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Call To Action Footer Banner -->
+    <section class="py-16 bg-slate-900 text-white relative overflow-hidden mt-12">
+        <div class="absolute inset-0 bg-gradient-to-r from-brand-900/50 to-purple-900/50 opacity-60"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight">{{ site.cta_title }}</h2>
+            <p class="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto mt-3">{{ site.cta_text }}</p>
+            <div class="mt-8">
+                <a href="{% url 'contact' %}" class="inline-block purple-bg-gradient text-white text-xs font-bold uppercase tracking-wider px-8 py-4 rounded-xl shadow-xl hover:scale-105 transition-transform">
+                    {{ site.cta_button }}
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 pt-16 pb-8 text-xs text-slate-600">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-100">
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg purple-bg-gradient flex items-center justify-center text-white">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </div>
+                        <span class="font-extrabold text-base tracking-tight text-slate-900 uppercase">{{ site.site_name }} {{ site.site_suffix }}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed max-w-sm">{{ site.footer_text }}</p>
+                    <div class="flex gap-3 text-slate-500 text-sm pt-2">
+                        <a href="{{ site.facebook_url }}" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white flex items-center justify-center transition-colors"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="{{ site.youtube_url }}" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white flex items-center justify-center transition-colors"><i class="fa-brands fa-youtube"></i></a>
+                        <a href="{{ site.linkedin_url }}" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white flex items-center justify-center transition-colors"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="{{ site.github_url }}" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white flex items-center justify-center transition-colors"><i class="fa-brands fa-github"></i></a>
+                        <a href="{{ site.instagram_url }}" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white flex items-center justify-center transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h5 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-4">Navigation</h5>
+                    <ul class="space-y-2 text-xs">
+                        {% for key, label, url in nav_items|slice:":5" %}
+                        <li><a href="{{ url }}" class="hover:text-brand-600 transition-colors">{{ label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-4">Capabilities</h5>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="{% url 'services' %}" class="hover:text-brand-600 transition-colors">Web Architecture</a></li>
+                        <li><a href="{% url 'services' %}" class="hover:text-brand-600 transition-colors">Mobile Engineering</a></li>
+                        <li><a href="{% url 'services' %}" class="hover:text-brand-600 transition-colors">UI/UX Humanized Design</a></li>
+                        <li><a href="{% url 'services' %}" class="hover:text-brand-600 transition-colors">AI &amp; Automation</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-4">Newsletter</h5>
+                    <p class="text-[11px] text-slate-500 mb-3">Subscribe for tech trends &amp; insights.</p>
+                    <form action="{% url 'subscribe' %}" method="post" class="space-y-2">
+                        {% csrf_token %}
+                        <input type="email" name="email" required placeholder="Enter email" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-brand-500">
+                        <button type="submit" class="w-full purple-bg-gradient text-white text-[11px] font-bold uppercase py-2 rounded-xl">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between pt-8 text-[11px] text-slate-400">
+                <p>&copy; {% now "Y" %} {{ site.copyright_text }}</p>
+                <div class="flex gap-4 mt-4 sm:mt-0">
+                    <a href="#" class="hover:underline" data-modal-title="Privacy Policy" data-modal-body="{{ site.privacy_text }}">Privacy Policy</a>
+                    <a href="#" class="hover:underline" data-modal-title="Terms of Service" data-modal-body="{{ site.terms_text }}">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Universal Custom Modal -->
+    {% if site.whatsapp_enabled and site.whatsapp_url %}
+    <a href="{{ site.whatsapp_url }}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp" class="wa-float">
+        <span class="wa-ring"></span><i class="fa-brands fa-whatsapp"></i><span class="wa-tip">Chat on WhatsApp</span>
+    </a>
+    <style>
+        .wa-float { position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 45; width: 3.4rem; height: 3.4rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 1.9rem; color: #fff; background: #25d366; box-shadow: 0 14px 28px -8px rgba(37,211,102,.7); transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+        .wa-float:hover { transform: scale(1.1) rotate(-6deg); }
+        .wa-ring { position: absolute; inset: 0; border-radius: 9999px; border: 2px solid #25d366; animation: wa-ping 2.2s ease-out infinite; }
+        @keyframes wa-ping { to { transform: scale(1.7); opacity: 0; } }
+        .wa-tip { position: absolute; right: 4.2rem; white-space: nowrap; padding: .45rem .8rem; border-radius: .7rem; font-size: .7rem; font-weight: 700; color: #fff; background: #0f172a; opacity: 0; transform: translateX(8px); pointer-events: none; transition: all .3s; }
+        .wa-float:hover .wa-tip { opacity: 1; transform: none; }
+        @media (prefers-reduced-motion: reduce) { .wa-ring { animation: none; } }
+    </style>
+    {% endif %}
+    <div id="customModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white max-w-md w-full rounded-3xl p-6 shadow-2xl border border-slate-200 relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-base font-bold text-slate-900" id="modalTitle">Modal Title</h3>
+            <p class="text-xs text-slate-600 mt-3 leading-relaxed" id="modalBody">Modal body text...</p>
+            <button onclick="closeModal()" class="mt-6 w-full purple-bg-gradient text-white text-xs font-bold uppercase py-3 rounded-xl">Close View</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        }
+        document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+
+        function toggleColorMode() {
+            var root = document.documentElement;
+            var dark = !root.classList.contains('dark');
+            root.classList.add('theme-anim');
+            root.classList.toggle('dark', dark);
+            root.setAttribute('data-mode', dark ? 'dark' : 'light');
+            try { localStorage.setItem('colorMode', dark ? 'dark' : 'light'); } catch (e) {}
+            setTimeout(function () { root.classList.remove('theme-anim'); }, 450);
+        }
+        function markActiveTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+                b.classList.toggle('is-active', b.dataset.themeBtn === current);
+            });
+        }
+        function changeAccentTone(tone) {
+            window.applyTheme(tone);
+            try { localStorage.setItem('accentTheme', tone); } catch (e) {}
+            markActiveTheme();
+        }
+        markActiveTheme();
+
+        function openModal(title, text) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerText = text;
+            document.getElementById('customModal').classList.add('modal-active');
+        }
+        function closeModal() {
+            document.getElementById('customModal').classList.remove('modal-active');
+        }
+        document.getElementById('customModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Footer legal links read their text from the admin-managed data attributes
+        document.querySelectorAll('[data-modal-title]').forEach(function (el) {
+            el.addEventListener('click', function (e) {
+                e.preventDefault();
+                openModal(el.dataset.modalTitle, el.dataset.modalBody);
+            });
+        });
+    </script>
+    {% if messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            {% for m in messages %}
+            (function () {
+                var parts = "{{ m|escapejs }}".split('|');
+                openModal(parts[0], parts.slice(1).join('|'));
+            })();
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Services | {{ site.site_name }} {{ site.site_suffix }}{% endblock %}
+{% block content %}
+<section class="py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Comprehensive Solutions</span>
+            <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 mt-3">Our Engineering Services</h1>
+            <p class="text-sm text-slate-600 mt-4">Discover how our specialized technological pillars transform complex digital operational challenges into competitive market advantages.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {% for s in services %}
+                {% include "agency/_service_card.html" with s=s full=True %}
+            {% empty %}
+            <p class="text-sm text-slate-500 col-span-2 text-center">No services yet. Add some from the admin panel.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block scripts %}{% include "agency/_service_assets.html" %}{% endblock %}

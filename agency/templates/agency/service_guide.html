@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+{% block title %}{{ service.title }} - Complete Guide | {{ site.site_name }} {{ site.site_suffix }}{% endblock %}
+
+{% block content %}
+<style>
+    @keyframes sg-ring { to { stroke-dashoffset: 0; } }
+    @keyframes sg-check { to { stroke-dashoffset: 0; } }
+    @keyframes sg-spin { to { transform: rotate(360deg); } }
+    @keyframes sg-pop { 0% { transform: scale(.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes sg-word { from { opacity: 0; transform: translateY(40%) rotate(3deg); } to { opacity: 1; transform: none; } }
+    @keyframes sg-marq { to { transform: translateX(-50%); } }
+    @keyframes sg-pulse { 0% { box-shadow: 0 0 0 0 rgb(var(--brand-400) / .6); } 100% { box-shadow: 0 0 0 18px rgb(var(--brand-400) / 0); } }
+    @keyframes sg-blob { to { transform: translate(-26px, 22px) scale(1.15); } }
+
+    .sg-hero { position: relative; overflow: hidden; border-radius: 0 0 2.5rem 2.5rem; background: linear-gradient(135deg, #0f172a, #1b1240 70%, rgb(var(--brand-900))); color: #fff; }
+    .sg-blob { position: absolute; border-radius: 9999px; filter: blur(70px); opacity: .5; pointer-events: none; animation: sg-blob 12s ease-in-out infinite alternate; }
+    .sg-dl { position: relative; width: 11rem; height: 11rem; flex-shrink: 0; }
+    .sg-dl svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .sg-dl .track { stroke: rgba(255,255,255,.12); }
+    .sg-dl .bar { stroke: rgb(var(--brand-300)); stroke-dasharray: 314; stroke-dashoffset: 314; stroke-linecap: round; }
+    .sg-dl.is-run .bar { animation: sg-ring 2.2s cubic-bezier(.5,0,.2,1) forwards; }
+    .sg-dl .core { position: absolute; inset: 1.6rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: #fff; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); animation: sg-pulse 2s infinite; }
+    .sg-dl .core .ic-done { display: none; }
+    .sg-dl.is-done .core { animation: sg-pop .5s both; background: linear-gradient(135deg, #10b981, #047857); }
+    .sg-dl.is-done .core .ic-dl { display: none; }
+    .sg-dl.is-done .core .ic-done { display: block; }
+    .sg-dl.is-done .bar { stroke: #34d399; stroke-dashoffset: 0; animation: none; }
+
+    .sg-btn { display: inline-flex; align-items: center; gap: .6rem; padding: .9rem 1.5rem; border-radius: .9rem; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; transition: transform .3s, box-shadow .3s, background .3s; cursor: pointer; }
+    .sg-btn:hover { transform: translateY(-3px); }
+    .sg-btn-solid { color: #fff; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); box-shadow: 0 16px 30px -12px rgb(var(--brand-500) / .8); }
+    .sg-btn-ghost { color: #fff; border: 1.5px solid rgba(255,255,255,.3); }
+    .sg-btn-ghost:hover { background: rgba(255,255,255,.12); }
+
+    /* sticky section nav + progress */
+    .sg-nav { position: sticky; top: 4rem; z-index: 30; background: rgba(255,255,255,.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226,232,240,.9); }
+    html.dark .sg-nav { background: rgba(15,15,28,.88); border-color: rgba(255,255,255,.08); }
+    .sg-nav-in { display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: none; }
+    .sg-nav a { white-space: nowrap; padding: .85rem .9rem; font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #64748b; border-bottom: 2px solid transparent; transition: color .3s, border-color .3s; }
+    .sg-nav a.is-on, .sg-nav a:hover { color: rgb(var(--brand-600)); border-color: rgb(var(--brand-500)); }
+    .sg-prog { height: 3px; background: linear-gradient(90deg, rgb(var(--brand-400)), rgb(var(--brand-700))); transform-origin: left; transform: scaleX(0); }
+
+    /* scroll-linked word highlight */
+    .sg-words { font-size: 1.35rem; line-height: 1.65; font-weight: 700; color: rgb(148 163 184 / .55); }
+    @media (min-width: 768px) { .sg-words { font-size: 1.9rem; } }
+    .sg-words span { transition: color .35s; }
+    .sg-words span.lit { color: #0f172a; }
+    html.dark .sg-words span.lit { color: #f1f5f9; }
+    .sg-words p + p { margin-top: 1.2rem; }
+
+    /* counters */
+    .sg-stat { position: relative; padding: 1.8rem 1.4rem; border-radius: 1.4rem; text-align: center; background: linear-gradient(160deg, rgb(var(--brand-500) / .1), rgb(var(--brand-700) / .04)); border: 1px solid rgb(var(--brand-500) / .22); overflow: hidden; }
+    .sg-stat b { display: block; font-size: 2.6rem; line-height: 1; font-weight: 900; color: rgb(var(--brand-600)); font-variant-numeric: tabular-nums; }
+    html.dark .sg-stat b { color: rgb(var(--brand-300)); }
+    .sg-stat small { display: block; margin-top: .6rem; font-size: .72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+
+    .sg-list li { display: flex; gap: .7rem; align-items: flex-start; padding: .8rem 1rem; border-radius: .9rem; font-size: .82rem; color: #334155; background: rgba(255,255,255,.7); border: 1px solid rgba(226,232,240,.9); transition: transform .3s, border-color .3s; }
+    .sg-list li:hover { transform: translateX(6px); border-color: rgb(var(--brand-400)); }
+    .sg-list li i { color: rgb(var(--brand-600)); margin-top: .2rem; }
+    html.dark .sg-list li { background: rgba(22,22,38,.8); border-color: rgba(255,255,255,.08); color: #cbd5e1; }
+
+    /* feature master-detail */
+    .sg-feat { display: grid; gap: 1.2rem; }
+    @media (min-width: 900px) { .sg-feat { grid-template-columns: .9fr 1.1fr; } }
+    .sg-tab { width: 100%; display: flex; align-items: center; gap: .9rem; text-align: left; padding: .9rem 1.1rem; border-radius: 1rem; border: 1px solid rgba(226,232,240,.9); background: rgba(255,255,255,.7); font-size: .82rem; font-weight: 800; color: #334155; transition: all .35s cubic-bezier(.2,.8,.2,1); position: relative; overflow: hidden; }
+    .sg-tab i { width: 2rem; height: 2rem; border-radius: .7rem; display: flex; align-items: center; justify-content: center; font-size: .8rem; background: rgb(var(--brand-500) / .12); color: rgb(var(--brand-600)); transition: all .35s; }
+    .sg-tab.is-on { color: #fff; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); transform: translateX(8px); box-shadow: 0 16px 26px -14px rgb(var(--brand-600) / .8); }
+    .sg-tab.is-on i { background: rgba(255,255,255,.2); color: #fff; }
+    html.dark .sg-tab:not(.is-on) { background: rgba(22,22,38,.8); border-color: rgba(255,255,255,.08); color: #cbd5e1; }
+    .sg-panel { position: relative; min-height: 15rem; border-radius: 1.6rem; padding: 2rem; color: #fff; overflow: hidden; background: linear-gradient(135deg, #0f172a, #1b1240); }
+    .sg-pane { position: absolute; inset: 2rem; opacity: 0; transform: translateY(24px) scale(.98); pointer-events: none; transition: opacity .5s, transform .6s cubic-bezier(.2,.8,.2,1); }
+    .sg-pane.is-on { opacity: 1; transform: none; pointer-events: auto; }
+    .sg-pane .big { width: 4rem; height: 4rem; border-radius: 1.2rem; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); box-shadow: 0 0 40px rgb(var(--brand-500) / .6); }
+    .sg-pane h4 { margin-top: 1.1rem; font-size: 1.35rem; font-weight: 800; }
+    .sg-pane p { margin-top: .6rem; font-size: .85rem; line-height: 1.7; color: #b4bdd0; }
+
+    /* sticky stacking steps */
+    .sg-stack { position: relative; }
+    .sg-card { position: sticky; top: calc(8rem + var(--k) * 14px); margin-bottom: 2rem; display: flex; gap: 1.2rem; align-items: center; padding: 1.8rem; border-radius: 1.6rem; background: #fff; border: 1px solid rgba(226,232,240,.9); box-shadow: 0 24px 40px -28px rgb(var(--brand-700) / .5); }
+    html.dark .sg-card { background: #161626; border-color: rgba(255,255,255,.08); }
+    .sg-card .n { font-size: 3.4rem; line-height: 1; font-weight: 900; color: transparent; -webkit-text-stroke: 1.5px rgb(var(--brand-500)); }
+    .sg-card h4 { font-size: 1.1rem; font-weight: 800; color: #0f172a; }
+    html.dark .sg-card h4 { color: #f1f5f9; }
+    .sg-card p { margin-top: .3rem; font-size: .8rem; color: #64748b; line-height: 1.6; }
+
+    /* marquee */
+    .sg-marq { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+    .sg-marq-track { display: flex; gap: .8rem; width: max-content; animation: sg-marq 28s linear infinite; }
+    .sg-marq:hover .sg-marq-track { animation-play-state: paused; }
+
+    /* faq */
+    .sg-faq { border-radius: 1.1rem; border: 1px solid rgba(226,232,240,.9); background: rgba(255,255,255,.8); overflow: hidden; transition: border-color .3s; }
+    html.dark .sg-faq { background: rgba(22,22,38,.85); border-color: rgba(255,255,255,.08); }
+    .sg-faq.is-open { border-color: rgb(var(--brand-400)); }
+    .sg-faq button { width: 100%; display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1.1rem 1.3rem; text-align: left; font-size: .85rem; font-weight: 800; color: #0f172a; }
+    html.dark .sg-faq button { color: #f1f5f9; }
+    .sg-faq button i { transition: transform .4s; color: rgb(var(--brand-600)); }
+    .sg-faq.is-open button i { transform: rotate(45deg); }
+    .sg-faq .a { height: 0; overflow: hidden; transition: height .45s cubic-bezier(.2,.8,.2,1); }
+    .sg-faq .a p { padding: 0 1.3rem 1.2rem; font-size: .8rem; line-height: 1.7; color: #64748b; }
+
+    @media (prefers-reduced-motion: reduce) { .sg-blob, .sg-marq-track, .sg-dl .core { animation: none !important; } }
+</style>
+
+<!-- Hero -->
+<section class="sg-hero">
+    <div class="sg-blob" style="width:22rem;height:22rem;background:rgb(var(--brand-500));top:-8rem;right:-5rem"></div>
+    <div class="sg-blob" style="width:16rem;height:16rem;background:rgb(var(--brand-700));bottom:-6rem;left:-4rem;animation-delay:-5s"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 relative">
+        <a href="{{ service.get_absolute_url }}" class="text-xs font-bold text-brand-200 hover:text-white inline-flex items-center gap-2"><i class="fa-solid fa-arrow-left"></i> {{ service.title }}</a>
+        <div class="mt-8 flex flex-col-reverse md:flex-row md:items-center gap-10 md:gap-16">
+            <div class="flex-1">
+                <span class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-white/10 border border-white/15"><i class="{{ service.icon }}"></i> Complete Service Guide</span>
+                <h1 class="text-3xl sm:text-5xl font-extrabold mt-4 leading-tight">{{ service.title }}</h1>
+                <p class="text-sm sm:text-base text-slate-300 mt-4 max-w-xl">{{ service.tagline|default:service.short_description }}</p>
+                <div class="mt-7 flex flex-wrap gap-3">
+                    <a href="{{ service.get_download_url }}" id="sgAgain" class="sg-btn sg-btn-solid"><i class="fa-solid fa-download"></i> Download again</a>
+                    <a href="{% url 'contact' %}" class="sg-btn sg-btn-ghost">Talk to an expert <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+                <p id="sgMsg" class="mt-4 text-xs text-slate-400">{% if auto_download %}Your brochure is downloading...{% else %}Get the brochure as a PDF to read offline or share with your team.{% endif %}</p>
+            </div>
+            <div class="sg-dl{% if auto_download %} is-run{% endif %}" id="sgDl" aria-hidden="true">
+                <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="50" fill="none" stroke-width="6"/><circle class="bar" cx="60" cy="60" r="50" fill="none" stroke-width="6"/></svg>
+                <div class="core"><i class="fa-solid fa-file-arrow-down ic-dl"></i><i class="fa-solid fa-check ic-done"></i></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sticky nav -->
+<div class="sg-nav" id="sgNav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="sg-nav-in">
+        <a href="#sg-overview">Overview</a>
+        {% if outcomes %}<a href="#sg-results">Results</a>{% endif %}
+        {% if features %}<a href="#sg-included">What's included</a>{% endif %}
+        {% if steps %}<a href="#sg-process">Process</a>{% endif %}
+        {% if service.tech_list %}<a href="#sg-tech">Technologies</a>{% endif %}
+        {% if faqs %}<a href="#sg-faq">FAQ</a>{% endif %}
+    </div></div>
+    <div class="sg-prog" id="sgProg"></div>
+</div>
+
+<!-- Overview (words light up while scrolling) -->
+<section id="sg-overview" class="py-16 sm:py-24">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Overview</span>
+        <div class="sg-words mt-6" id="sgWords">
+            {% for para in service.guide_paragraphs %}<p>{{ para }}</p>{% endfor %}
+        </div>
+    </div>
+</section>
+
+{% if outcomes %}
+<section id="sg-results" class="pb-16 sm:pb-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-10"><span class="text-xs font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full">Expected results</span></div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {% for o in outcomes %}
+            <div class="sg-stat reveal" style="--d: {{ forloop.counter0 }}"><b data-count="{{ o.value }}">{{ o.value }}</b><small>{{ o.label }}</small></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if service.ideal_for_list or service.deliverable_list %}
+<section class="pb-16 sm:pb-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10">
+        {% if service.ideal_for_list %}
+        <div>
+            <h2 class="text-xl font-extrabold text-slate-900 mb-5">Who this is for</h2>
+            <ul class="sg-list space-y-3">{% for x in service.ideal_for_list %}<li class="reveal" style="--d: {{ forloop.counter0 }}"><i class="fa-solid fa-user-check"></i><span>{{ x }}</span></li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+        {% if service.deliverable_list %}
+        <div>
+            <h2 class="text-xl font-extrabold text-slate-900 mb-5">What you receive</h2>
+            <ul class="sg-list space-y-3">{% for x in service.deliverable_list %}<li class="reveal" style="--d: {{ forloop.counter0 }}"><i class="fa-solid fa-box-open"></i><span>{{ x }}</span></li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+{% if features %}
+<section id="sg-included" class="pb-16 sm:pb-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-8">What's included</h2>
+        <div class="sg-feat" id="sgFeat">
+            <div class="space-y-3">
+                {% for f in features %}<button type="button" class="sg-tab{% if forloop.first %} is-on{% endif %}" data-i="{{ forloop.counter0 }}"><i class="{{ f.icon }}"></i><span>{{ f.title }}</span></button>{% endfor %}
+            </div>
+            <div class="sg-panel">
+                {% for f in features %}
+                <div class="sg-pane{% if forloop.first %} is-on{% endif %}"><div class="big"><i class="{{ f.icon }}"></i></div><h4>{{ f.title }}</h4><p>{{ f.description }}</p></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if steps %}
+<section id="sg-process" class="pb-12 sm:pb-20">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-8 text-center">How we deliver</h2>
+        <div class="sg-stack">
+            {% for st in steps %}
+            <div class="sg-card" style="--k: {{ forloop.counter0 }}"><span class="n">{{ forloop.counter|stringformat:"02d" }}</span><div><h4>{{ st.title }}</h4><p>{{ st.description }}</p></div></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if service.tech_list %}
+<section id="sg-tech" class="pb-16 sm:pb-24">
+    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-8 text-center">Technologies we use</h2>
+    <div class="sg-marq"><div class="sg-marq-track">
+        {% for rep in "ab" %}{% for t in service.tech_list %}<span class="tech-chip"><i class="fa-solid fa-circle-nodes text-[10px]"></i>{{ t }}</span>{% endfor %}{% endfor %}
+    </div></div>
+</section>
+{% endif %}
+
+{% if faqs %}
+<section id="sg-faq" class="pb-16 sm:pb-24">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-8 text-center">Frequently asked questions</h2>
+        <div class="space-y-3">
+            {% for f in faqs %}
+            <div class="sg-faq"><button type="button" aria-expanded="false"><span>{{ f.question }}</span><i class="fa-solid fa-plus"></i></button><div class="a"><p>{{ f.answer }}</p></div></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="pb-20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+        <div class="rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden" style="background:linear-gradient(135deg,rgb(var(--brand-600)),rgb(var(--brand-900)))">
+            <h2 class="text-2xl sm:text-3xl font-extrabold">Ready to start with {{ service.title }}?</h2>
+            <p class="text-sm text-white/80 mt-3 max-w-xl mx-auto">Book a free consultation and get a clear estimate and timeline.</p>
+            <div class="mt-7 flex flex-wrap justify-center gap-3">
+                <a href="{% url 'contact' %}" class="sg-btn" style="background:#fff;color:rgb(var(--brand-700))">Get a free consultation <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="{{ service.get_download_url }}" class="sg-btn sg-btn-ghost"><i class="fa-solid fa-download"></i> Download brochure</a>
+                <a href="{% url 'services' %}" class="sg-btn sg-btn-ghost">All services</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% include "agency/_service_assets.html" %}
+<script>
+(function () {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var dl = document.getElementById('sgDl'), msg = document.getElementById('sgMsg');
+    var url = "{{ service.get_download_url|escapejs }}";
+
+    function startDownload() {
+        var f = document.createElement('iframe');
+        f.style.display = 'none'; f.src = url; document.body.appendChild(f);
+        setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 15000);
+    }
+    function done() {
+        dl.classList.remove('is-run'); dl.classList.add('is-done');
+        msg.textContent = 'Downloaded. Check your downloads folder - the full guide is below.';
+    }
+    {% if auto_download %}
+    startDownload();
+    setTimeout(done, reduce ? 200 : 2300);
+    if (window.history && history.replaceState) { history.replaceState(null, '', location.pathname + location.hash); }
+    {% endif %}
+    document.getElementById('sgAgain').addEventListener('click', function (e) {
+        e.preventDefault();
+        dl.classList.remove('is-done'); void dl.offsetWidth; dl.classList.add('is-run');
+        msg.textContent = 'Your brochure is downloading...';
+        startDownload(); setTimeout(done, reduce ? 200 : 2300);
+    });
+
+    /* overview words + reading progress + scrollspy */
+    var box = document.getElementById('sgWords'), words = [];
+    if (box) {
+        box.querySelectorAll('p').forEach(function (p) {
+            var parts = p.textContent.trim().split(/\s+/);
+            p.textContent = '';
+            parts.forEach(function (w, i) {
+                var s = document.createElement('span'); s.textContent = w + (i < parts.length - 1 ? ' ' : '');
+                p.appendChild(s); words.push(s);
+            });
+        });
+    }
+    var prog = document.getElementById('sgProg');
+    var links = Array.prototype.slice.call(document.querySelectorAll('#sgNav a'));
+    var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+    function onScroll() {
+        var h = document.documentElement, max = h.scrollHeight - innerHeight;
+        prog.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, scrollY / max) : 0) + ')';
+        if (words.length) {
+            var r = box.getBoundingClientRect(), p = (innerHeight * .8 - r.top) / (r.height + innerHeight * .3);
+            var n = Math.round(Math.max(0, Math.min(1, p)) * words.length);
+            if (reduce) n = words.length;
+            for (var i = 0; i < words.length; i++) words[i].classList.toggle('lit', i < n);
+        }
+        var cur = 0;
+        secs.forEach(function (s, i) { if (s && s.getBoundingClientRect().top < 140) cur = i; });
+        links.forEach(function (a, i) { a.classList.toggle('is-on', i === cur); });
+    }
+    addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll); onScroll();
+
+    /* count-up */
+    function count(el) {
+        var raw = el.getAttribute('data-count'), m = raw.match(/^(\D*)([\d.,]+)(.*)$/);
+        if (!m || reduce) return;
+        var target = parseFloat(m[2].replace(/,/g, '')), dec = (m[2].split('.')[1] || '').length, t0 = null;
+        function tick(t) {
+            if (t0 === null) t0 = t;
+            var k = Math.min(1, (t - t0) / 1500), e = 1 - Math.pow(1 - k, 3);
+            el.textContent = m[1] + (target * e).toFixed(dec) + m[3];
+            if (k < 1) requestAnimationFrame(tick); else el.textContent = raw;
+        }
+        requestAnimationFrame(tick);
+    }
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (es) {
+            es.forEach(function (en) { if (en.isIntersecting) { count(en.target); io.unobserve(en.target); } });
+        }, { threshold: .6 });
+        document.querySelectorAll('[data-count]').forEach(function (el) { io.observe(el); });
+    }
+
+    /* feature master-detail with auto-cycle */
+    var feat = document.getElementById('sgFeat');
+    if (feat) {
+        var tabs = feat.querySelectorAll('.sg-tab'), panes = feat.querySelectorAll('.sg-pane'), cur = 0, tm = null, touched = false;
+        function show(i) {
+            cur = i;
+            tabs.forEach(function (t, k) { t.classList.toggle('is-on', k === i); });
+            panes.forEach(function (p, k) { p.classList.toggle('is-on', k === i); });
+        }
+        tabs.forEach(function (t, i) {
+            t.addEventListener('click', function () { touched = true; clearInterval(tm); show(i); });
+            t.addEventListener('mouseenter', function () { touched = true; clearInterval(tm); show(i); });
+        });
+        var h = 0; panes.forEach(function (p) { h = Math.max(h, p.scrollHeight); });
+        feat.querySelector('.sg-panel').style.minHeight = (h + 64) + 'px';
+        if (!reduce && tabs.length > 1) tm = setInterval(function () { if (!touched) show((cur + 1) % tabs.length); }, 3800);
+    }
+
+    /* faq */
+    document.querySelectorAll('.sg-faq').forEach(function (f) {
+        var b = f.querySelector('button'), a = f.querySelector('.a');
+        b.addEventListener('click', function () {
+            var open = f.classList.toggle('is-open');
+            b.setAttribute('aria-expanded', open);
+            a.style.height = open ? a.scrollHeight + 'px' : '0px';
+        });
+    });
+})();
+</script>
+{% endblock %}

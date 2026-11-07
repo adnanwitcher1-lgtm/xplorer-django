@@ -1,0 +1,79 @@
+<style>
+    /* ---------- Scroll reveal ---------- */
+    .reveal { opacity: 0; transform: translateY(32px) scale(.98); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1); transition-delay: calc(var(--d, 0) * 110ms); }
+    .reveal.is-in { opacity: 1; transform: none; }
+
+    /* ---------- Unique service card ---------- */
+    @property --svc-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+    @keyframes svc-spin { to { --svc-ang: 360deg; } }
+    @keyframes svc-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+    .svc-card { position: relative; height: 100%; display: flex; flex-direction: column; padding: 1.75rem; border-radius: 1.5rem; background: rgba(255,255,255,.92); border: 1px solid rgba(226,232,240,.9); overflow: hidden; isolation: isolate; transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .45s, border-color .3s; --mx: 50%; --my: 50%; }
+    .svc-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(380px circle at var(--mx) var(--my), rgb(var(--brand-500) / .18), transparent 65%); opacity: 0; transition: opacity .35s; }
+    .svc-card::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; background: conic-gradient(from var(--svc-ang), transparent 0 55%, rgb(var(--brand-300)), rgb(var(--brand-600)) 80%, transparent 95%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; opacity: 0; transition: opacity .35s; animation: svc-spin 3.5s linear infinite; }
+    .svc-card:hover { transform: translateY(-10px); border-color: transparent; box-shadow: 0 28px 50px -18px rgb(var(--brand-500) / .38); }
+    .svc-card:hover::before, .svc-card:hover::after { opacity: 1; }
+
+    .svc-num { position: absolute; top: .55rem; right: 1.1rem; font-size: 4.2rem; line-height: 1; font-weight: 900; color: transparent; -webkit-text-stroke: 1.5px rgb(var(--brand-300) / .65); pointer-events: none; user-select: none; transition: transform .5s cubic-bezier(.2,.8,.2,1), color .3s, -webkit-text-stroke-color .3s; }
+    .svc-card:hover .svc-num { transform: translateY(-6px) scale(1.07); color: rgb(var(--brand-500) / .1); -webkit-text-stroke-color: rgb(var(--brand-500)); }
+
+    .svc-icon-wrap { display: inline-block; align-self: flex-start; margin-bottom: 1.25rem; animation: svc-float 5s ease-in-out infinite; }
+    .svc-icon { width: 3.5rem; height: 3.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #fff; border-radius: 1.1rem 1.1rem 1.1rem .35rem; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); box-shadow: 0 12px 24px -10px rgb(var(--brand-600) / .65); transition: transform .5s cubic-bezier(.2,.8,.2,1), border-radius .5s; }
+    .svc-card:hover .svc-icon { transform: rotate(-9deg) scale(1.12); border-radius: .35rem 1.1rem 1.1rem 1.1rem; }
+
+    .svc-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.3; color: #0f172a; }
+    .svc-title span { padding-bottom: 3px; background-image: linear-gradient(90deg, rgb(var(--brand-500)), rgb(var(--brand-300))); background-repeat: no-repeat; background-position: 0 100%; background-size: 0% 3px; transition: background-size .55s cubic-bezier(.2,.8,.2,1); }
+    .svc-card:hover .svc-title span { background-size: 100% 3px; }
+    .svc-text { margin-top: .65rem; font-size: .78rem; line-height: 1.75; color: #475569; }
+    .svc-foot { margin-top: auto; padding-top: 1.6rem; }
+
+    .svc-btn { position: relative; display: inline-flex; align-items: center; gap: .65rem; padding: .7rem 1.25rem; border-radius: 999px; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgb(var(--brand-600)); border: 1.5px solid rgb(var(--brand-500) / .45); overflow: hidden; isolation: isolate; transition: color .35s, border-color .35s, box-shadow .35s; }
+    .svc-btn::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700))); transform: translateX(-101%); transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+    .svc-btn:hover { color: #fff; border-color: transparent; box-shadow: 0 12px 22px -10px rgb(var(--brand-600) / .6); }
+    .svc-btn:hover::before { transform: none; }
+    .svc-btn i { transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+    .svc-btn:hover i { transform: translateX(6px); }
+    .svc-card:hover .svc-btn i { transform: translateX(3px); }
+
+    .svc-foot { display: flex; flex-wrap: wrap; gap: .6rem; }
+    .svc-btn-ghost { border-style: dashed; color: rgb(100 116 139); border-color: rgb(148 163 184 / .7); }
+    .svc-btn-ghost:hover { border-style: solid; }
+    .svc-btn-ghost:hover i { transform: none; animation: svc-dl .8s ease infinite; }
+    @keyframes svc-dl { 0%,100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+    html.dark .svc-btn-ghost { color: #cbd5e1; border-color: rgba(255,255,255,.25); }
+
+    html.dark .svc-card { background: rgba(22,22,38,.9); border-color: rgba(255,255,255,.07); }
+    html.dark .svc-title { color: #f1f5f9; }
+    html.dark .svc-text { color: #a9b4c6; }
+    html.dark .svc-btn { color: rgb(var(--brand-300)); }
+
+    @media (prefers-reduced-motion: reduce) {
+        .reveal { opacity: 1; transform: none; transition: none; }
+        .svc-icon-wrap, .svc-card::after { animation: none; }
+    }
+</style>
+<noscript><style>.reveal { opacity: 1; transform: none; }</style></noscript>
+<script>
+    (function () {
+        // Reveal elements (and timeline lines) as they scroll into view
+        var targets = document.querySelectorAll('.reveal, .draw');
+        if ('IntersectionObserver' in window) {
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+                });
+            }, { threshold: 0.15 });
+            targets.forEach(function (el) { io.observe(el); });
+        } else {
+            targets.forEach(function (el) { el.classList.add('is-in'); });
+        }
+        // Spotlight that follows the pointer on service cards
+        document.querySelectorAll('.svc-card').forEach(function (card) {
+            card.addEventListener('pointermove', function (e) {
+                var r = card.getBoundingClientRect();
+                card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+                card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+            });
+        });
+    })();
+</script>
